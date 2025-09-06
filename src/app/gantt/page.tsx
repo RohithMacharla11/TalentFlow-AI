@@ -14,7 +14,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { differenceInDays, format, parseISO, isValid } from 'date-fns';
+import { differenceInDays, format, parseISO, isValid, startOfYear } from 'date-fns';
 
 export default function GanttPage() {
   const [allocations, setAllocations] = useState<Allocation[]>([]);
@@ -52,29 +52,32 @@ export default function GanttPage() {
   const getResourceName = (resourceId: string) => {
     return resources.find(r => r.id === resourceId)?.name ?? 'Unknown';
   };
-  
+
   const chartData = projects
     .filter(project => project.startDate && project.deadline)
     .map(project => {
-        const projectAllocations = allocations.filter(a => a.projectId === project.id);
-        const start = parseISO(project.startDate);
-        const end = parseISO(project.deadline);
-        
-        if (!isValid(start) || !isValid(end)) {
-            return null;
-        }
+      const projectAllocations = allocations.filter(a => a.projectId === project.id);
+      const start = parseISO(project.startDate);
+      const end = parseISO(project.deadline);
+      
+      if (!isValid(start) || !isValid(end)) {
+        return null;
+      }
+      
+      const yearStart = startOfYear(start);
+      const startDay = differenceInDays(start, yearStart);
+      const duration = differenceInDays(end, start);
 
-        const duration = differenceInDays(end, start);
-        
-        return {
+      return {
         name: project.name,
-        range: [start.getTime(), end.getTime()],
+        range: [start.getTime(), end.getTime()], // For tooltip
+        startDay,
         duration: duration > 0 ? duration : 1,
         allocations: projectAllocations,
-        };
+      };
     })
     .filter(Boolean)
-    .sort((a,b) => a!.range[0] - b!.range[0]);
+    .sort((a, b) => a!.range[0] - b!.range[0]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -85,12 +88,16 @@ export default function GanttPage() {
         <div className="bg-background border p-2 rounded-md shadow-md text-sm">
           <p className="font-bold">{label}</p>
           <p className="text-muted-foreground">{`${startDate} - ${endDate}`}</p>
-          <p className="mt-2 font-semibold">Allocated:</p>
-          <ul className="list-disc list-inside text-muted-foreground">
-            {data.allocations.map((alloc: Allocation) => (
-              <li key={alloc.resourceId}>{getResourceName(alloc.resourceId)}</li>
-            ))}
-          </ul>
+          {data.allocations.length > 0 && (
+            <>
+              <p className="mt-2 font-semibold">Allocated:</p>
+              <ul className="list-disc list-inside text-muted-foreground">
+                {data.allocations.map((alloc: Allocation) => (
+                  <li key={alloc.resourceId}>{getResourceName(alloc.resourceId)}</li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       );
     }
@@ -104,34 +111,42 @@ export default function GanttPage() {
       </div>
       <Card>
         <CardHeader>
-            <CardTitle>Project Timelines</CardTitle>
+          <CardTitle>Project Timelines</CardTitle>
         </CardHeader>
         <CardContent className="h-[600px] w-full">
-            {loading ? (
-                <p>Loading...</p>
-            ) : (
+          {loading ? (
+            <p>Loading...</p>
+          ) : (
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                    data={chartData}
-                    layout="vertical"
-                    margin={{
-                        top: 20, right: 30, left: 100, bottom: 5,
-                    }}
-                    barCategoryGap="30%"
-                >
-                    <XAxis type="number" domain={['dataMin', 'dataMax']} hide />
-                    <YAxis dataKey="name" type="category" width={150} tickLine={false} axisLine={false} />
-                    <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(120, 120, 120, 0.1)'}}/>
-                    <Legend />
-                    <Bar
-                        dataKey="range"
-                        name="Project Duration"
-                        fill="hsl(var(--primary) / 0.5)"
-                        background={{ fill: 'hsl(var(--muted))' }}
-                    />
-                </BarChart>
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{
+                  top: 20, right: 30, left: 100, bottom: 5,
+                }}
+                barCategoryGap="30%"
+                stackOffset="expand" // This helps position the bars correctly
+              >
+                <XAxis type="number" hide />
+                <YAxis dataKey="name" type="category" width={150} tickLine={false} axisLine={false} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+                <Legend />
+                <Bar 
+                  dataKey="startDay" 
+                  stackId="a" 
+                  fill="transparent" 
+                  stroke="transparent"
+                  name="Start"
+                  />
+                <Bar
+                  dataKey="duration"
+                  stackId="a"
+                  name="Duration (days)"
+                  fill="hsl(var(--primary) / 0.6)"
+                />
+              </BarChart>
             </ResponsiveContainer>
-            )}
+          )}
         </CardContent>
       </Card>
     </div>
