@@ -21,7 +21,7 @@ import { Button } from '../ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { createProjectRequest } from '@/services/firestore-service';
 import { useToast } from '@/hooks/use-toast';
-import { Send } from 'lucide-react';
+import { Send, Eye } from 'lucide-react';
 
 interface ProjectsTableProps {
   projects: Project[];
@@ -30,9 +30,10 @@ interface ProjectsTableProps {
   loading: boolean;
   requests?: ProjectRequest[];
   currentUserResource?: Resource | null;
+  isMyProjects?: boolean;
 }
 
-export function ProjectsTable({ projects, resources, allocations, loading, requests, currentUserResource }: ProjectsTableProps) {
+export function ProjectsTable({ projects, resources, allocations, loading, requests, currentUserResource, isMyProjects = false }: ProjectsTableProps) {
   const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -126,7 +127,7 @@ export function ProjectsTable({ projects, resources, allocations, loading, reque
               <div className="flex -space-x-2">
                 {allocations
                   .filter((a) => a.projectId === project.id)
-                  .map((a) => getResourceById(a.resourceId))
+                  .map((a, index) => getResourceById(a.resourceId))
                   .map((resource, index) =>
                     resource ? (
                       <Avatar key={`${resource.id}-${index}`} className="border-2 border-card">
@@ -152,15 +153,21 @@ export function ProjectsTable({ projects, resources, allocations, loading, reque
             </TableCell>
             <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                 {user?.role === 'Team Member' ? (
-                     <Button 
-                        variant={isRequested ? "secondary" : "outline"} 
-                        size="sm"
-                        onClick={(e) => handleRequestJoin(e, project.id)}
-                        disabled={isRequested}
-                    >
-                      <Send className="mr-2 h-4 w-4" />
-                      {isRequested ? 'Requested' : 'Request to Join'}
-                    </Button>
+                     isMyProjects ? (
+                        <Button variant="outline" size="sm" onClick={() => handleRowClick(project.id)}>
+                            <Eye className="mr-2 h-4 w-4" /> View
+                        </Button>
+                     ) : (
+                        <Button 
+                            variant={isRequested ? "secondary" : "outline"} 
+                            size="sm"
+                            onClick={(e) => handleRequestJoin(e, project.id)}
+                            disabled={isRequested}
+                        >
+                          <Send className="mr-2 h-4 w-4" />
+                          {isRequested ? 'Requested' : 'Request to Join'}
+                        </Button>
+                     )
                 ) : (
                     <AllocationModal project={project} allocations={allocations.filter(a => a.projectId === project.id)} resources={resources}/>
                 )}

@@ -31,15 +31,9 @@ export function DashboardClient() {
   const [prefillData, setPrefillData] = useState<Partial<ResourceFormValues> | undefined>();
 
   useEffect(() => {
-    const fetchAndSetCurrentUserResource = async (email: string) => {
-        setLoadingResourceProfile(true);
-        const resourceProfile = await getResourceByEmail(email);
-        setCurrentUserResource(resourceProfile);
-        setLoadingResourceProfile(false);
-    };
-
     if (user?.role === 'Team Member' && user.email) {
         // We use onSnapshot to listen for real-time creation of the resource profile
+        setLoadingResourceProfile(true);
         const q = query(collection(db, "resources"), where("email", "==", user.email));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             if (!snapshot.empty) {
@@ -48,13 +42,13 @@ export function DashboardClient() {
             } else {
                 setCurrentUserResource(null);
             }
-            if (loadingResourceProfile) setLoadingResourceProfile(false);
+            setLoadingResourceProfile(false);
         });
         return () => unsubscribe();
     } else {
         setLoadingResourceProfile(false);
     }
-  }, [user, loadingResourceProfile]);
+  }, [user]);
 
   useEffect(() => {
     setLoading(true);
@@ -135,7 +129,13 @@ export function DashboardClient() {
                     <CardDescription>Projects you are currently assigned to.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ProjectsTable projects={assignedProjects} resources={resources} allocations={allocations} loading={loading || loadingResourceProfile} />
+                    <ProjectsTable 
+                        projects={assignedProjects} 
+                        resources={resources} 
+                        allocations={allocations} 
+                        loading={loading || loadingResourceProfile} 
+                        isMyProjects={true}
+                    />
                 </CardContent>
                 </Card>
                 <Card className="col-span-1 lg:col-span-2">
