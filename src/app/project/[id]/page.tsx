@@ -123,7 +123,7 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                                     <CardDescription>
                                         Drag and drop resources to re-assign or un-assign them.
                                     </CardDescription>
-                                </CardHeader>
+                                </Header>
                                 <CardContent>
                                     {allocatedResources.length > 0 ? (
                                         <div className="space-y-4">
@@ -140,7 +140,7 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                                                             <p className="text-sm text-muted-foreground">{resource.role}</p>
                                                         </div>
                                                     </div>
-                                                    <Badge variant="outline">{match}% Match</Badge>
+                                                    {match && <Badge variant="outline">{match}% Match</Badge>}
                                                 </div>
                                                )
                                             ))}
