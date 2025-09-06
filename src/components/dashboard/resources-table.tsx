@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -19,6 +20,12 @@ interface ResourcesTableProps {
 }
 
 export function ResourcesTable({ resources }: ResourcesTableProps) {
+  const router = useRouter();
+
+  const handleRowClick = (resourceId: string) => {
+    router.push(`/resource/${resourceId}`);
+  };
+
   return (
     <Table>
       <TableHeader>
@@ -32,7 +39,11 @@ export function ResourcesTable({ resources }: ResourcesTableProps) {
       </TableHeader>
       <TableBody>
         {resources.map((resource) => (
-          <TableRow key={resource.id}>
+          <TableRow 
+            key={resource.id} 
+            onClick={() => handleRowClick(resource.id)}
+            className="cursor-pointer"
+          >
             <TableCell className="font-medium">
               <div className="flex items-center gap-3">
                 <Avatar>
@@ -64,7 +75,7 @@ export function ResourcesTable({ resources }: ResourcesTableProps) {
                 <span className="text-xs text-muted-foreground">{resource.availability}h/wk</span>
               </div>
             </TableCell>
-            <TableCell className="text-right">
+            <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                 <Button variant="outline" size="sm">Assign</Button>
             </TableCell>
           </TableRow>

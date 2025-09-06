@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -23,6 +24,7 @@ interface ProjectsTableProps {
 }
 
 export function ProjectsTable({ projects, resources, allocations }: ProjectsTableProps) {
+  const router = useRouter();
   const getResourceById = (id: string) => resources.find((r) => r.id === id);
 
   const getStatusColor = (status: Allocation['status']) => {
@@ -36,6 +38,10 @@ export function ProjectsTable({ projects, resources, allocations }: ProjectsTabl
       default:
         return 'bg-gray-500';
     }
+  };
+
+  const handleRowClick = (projectId: string) => {
+    router.push(`/project/${projectId}`);
   };
 
   return (
@@ -52,7 +58,11 @@ export function ProjectsTable({ projects, resources, allocations }: ProjectsTabl
       </TableHeader>
       <TableBody>
         {projects.map((project) => (
-          <TableRow key={project.id}>
+          <TableRow 
+            key={project.id} 
+            onClick={() => handleRowClick(project.id)}
+            className="cursor-pointer"
+          >
             <TableCell className="font-medium">{project.name}</TableCell>
             <TableCell>
               <Badge
@@ -96,7 +106,7 @@ export function ProjectsTable({ projects, resources, allocations }: ProjectsTabl
                   ))}
               </div>
             </TableCell>
-            <TableCell className="text-right">
+            <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
               <AllocationModal project={project} allocations={allocations.filter(a => a.projectId === project.id)} resources={resources}/>
             </TableCell>
           </TableRow>
