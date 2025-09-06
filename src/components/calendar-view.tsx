@@ -75,11 +75,11 @@ export function CalendarView({ projects, resources, allocations }: CalendarViewP
                                     {format(day, 'd')}
                                 </time>
                                 <div className="mt-1 space-y-1">
-                                    {dailyAllocations.map(alloc => {
+                                    {dailyAllocations.map((alloc, index) => {
                                         const resource = getResourceById(alloc.resourceId);
                                         const project = projects.find(p => p.id === alloc.projectId);
                                         return (
-                                            <div key={alloc.id} className="bg-primary/10 text-primary-foreground p-1 rounded-md text-xs">
+                                            <div key={`${alloc.id}-${index}`} className="bg-primary/10 text-primary-foreground p-1 rounded-md text-xs">
                                                 <p className="font-semibold text-primary">{resource?.name}</p>
                                                 <p className="text-primary/80 truncate">{project?.name}</p>
                                             </div>
