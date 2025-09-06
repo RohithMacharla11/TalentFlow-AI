@@ -14,7 +14,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { differenceInDays, format, parseISO } from 'date-fns';
+import { differenceInDays, format, parseISO, isValid } from 'date-fns';
 
 export default function GanttPage() {
   const [allocations, setAllocations] = useState<Allocation[]>([]);
@@ -53,19 +53,28 @@ export default function GanttPage() {
     return resources.find(r => r.id === resourceId)?.name ?? 'Unknown';
   };
   
-  const chartData = projects.map(project => {
-    const projectAllocations = allocations.filter(a => a.projectId === project.id);
-    const start = parseISO(project.startDate);
-    const end = parseISO(project.deadline);
-    const duration = differenceInDays(end, start);
-    
-    return {
-      name: project.name,
-      range: [start.getTime(), end.getTime()],
-      duration: duration > 0 ? duration : 1,
-      allocations: projectAllocations,
-    };
-  }).sort((a,b) => a.range[0] - b.range[0]);
+  const chartData = projects
+    .filter(project => project.startDate && project.deadline)
+    .map(project => {
+        const projectAllocations = allocations.filter(a => a.projectId === project.id);
+        const start = parseISO(project.startDate);
+        const end = parseISO(project.deadline);
+        
+        if (!isValid(start) || !isValid(end)) {
+            return null;
+        }
+
+        const duration = differenceInDays(end, start);
+        
+        return {
+        name: project.name,
+        range: [start.getTime(), end.getTime()],
+        duration: duration > 0 ? duration : 1,
+        allocations: projectAllocations,
+        };
+    })
+    .filter(Boolean)
+    .sort((a,b) => a!.range[0] - b!.range[0]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
