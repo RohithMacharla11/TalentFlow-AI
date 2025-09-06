@@ -14,12 +14,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { User as UserIcon, LogOut } from 'lucide-react';
+import Link from 'next/link';
 
 
 export function Header() {
   const { user, signOutUser } = useAuth();
   
-  const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : '?';
+  const userInitial = user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || '?';
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
@@ -32,7 +33,7 @@ export function Header() {
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                <Avatar className="h-10 w-10">
                  {/* In a real app, you would have user avatars */}
-                 {/* <AvatarImage src="https://picsum.photos/seed/user/200" alt={user.email ?? ''} /> */}
+                 <AvatarImage src={user.photoURL ?? ''} alt={user.email ?? ''} />
                  <AvatarFallback>{userInitial}</AvatarFallback>
               </Avatar>
             </Button>
@@ -40,16 +41,18 @@ export function Header() {
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+                <p className="text-sm font-medium leading-none">{user.displayName || user.email}</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  {user.email}
+                  {user.role || 'User'}
                 </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <UserIcon className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+            <DropdownMenuItem asChild>
+              <Link href="/profile">
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOutUser}>

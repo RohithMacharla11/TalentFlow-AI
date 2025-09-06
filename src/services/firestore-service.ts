@@ -5,7 +5,7 @@
  * @fileOverview Service functions for interacting with Firestore.
  */
 
-import { collection, getDocs, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Project, Resource, Allocation, User } from '@/lib/types';
 
@@ -15,7 +15,7 @@ import type { Project, Resource, Allocation, User } from '@/lib/types';
  * @param user - The user data to save.
  * @returns A promise that resolves when the profile is created.
  */
-export async function createUserProfile(user: User): Promise<void> {
+export async function createUserProfile(user: Omit<User, 'id'>): Promise<void> {
   const userRef = doc(db, 'users', user.uid);
   await setDoc(userRef, {
     name: user.name,
@@ -23,6 +23,18 @@ export async function createUserProfile(user: User): Promise<void> {
     role: user.role,
   });
 }
+
+/**
+ * Updates a user profile document in Firestore.
+ * @param uid - The user's unique ID.
+ * @param data - The data to update.
+ * @returns A promise that resolves when the profile is updated.
+ */
+export async function updateUserProfile(uid: string, data: Partial<User>): Promise<void> {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, data);
+}
+
 
 /**
  * Fetches all projects from Firestore.
