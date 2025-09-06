@@ -1,6 +1,15 @@
 
 import type { Timestamp } from 'firebase/firestore';
 
+export type UserRole = 'Administrator' | 'Project Manager' | 'Team Member';
+
+export type User = {
+  uid: string;
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
 export type Resource = {
   id: string;
   name: string;

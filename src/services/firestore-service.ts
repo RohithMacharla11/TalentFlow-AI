@@ -7,7 +7,22 @@
 
 import { collection, getDocs, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { Project, Resource, Allocation } from '@/lib/types';
+import type { Project, Resource, Allocation, User } from '@/lib/types';
+
+
+/**
+ * Creates a user profile document in Firestore.
+ * @param user - The user data to save.
+ * @returns A promise that resolves when the profile is created.
+ */
+export async function createUserProfile(user: User): Promise<void> {
+  const userRef = doc(db, 'users', user.uid);
+  await setDoc(userRef, {
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  });
+}
 
 /**
  * Fetches all projects from Firestore.

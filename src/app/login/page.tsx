@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { Bot } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -36,11 +36,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl font-headline">Login</CardTitle>
-          <CardDescription>Enter your email below to login to your account.</CardDescription>
+    <div className="flex items-center justify-center min-h-screen bg-muted/50">
+       <div className="absolute top-8 left-8 flex items-center gap-2">
+          <Bot className="w-8 h-8 text-primary" />
+          <div className="font-headline text-2xl font-semibold">
+            TalentFlow
+          </div>
+        </div>
+      <Card className="w-full max-w-sm shadow-lg">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-headline">Welcome Back!</CardTitle>
+          <CardDescription>Enter your credentials to access your dashboard.</CardDescription>
         </CardHeader>
         <form onSubmit={handleSignIn}>
           <CardContent className="grid gap-4">
@@ -53,6 +59,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="grid gap-2">
@@ -63,16 +70,17 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col">
+          <CardFooter className="flex flex-col gap-4">
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
-            <p className="mt-4 text-xs text-center text-muted-foreground">
+            <p className="text-xs text-center text-muted-foreground">
               Don't have an account?{' '}
-              <Link href="/signup" className="underline">
+              <Link href="/signup" className="underline font-medium text-primary">
                 Sign up
               </Link>
             </p>
