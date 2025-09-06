@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,7 +7,7 @@ import type { Project, Resource, Allocation } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { notFound, useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
     Tabs,
     TabsContent,
@@ -22,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function ProjectDetailPage() {
     const params = useParams();
+    const router = useRouter();
     const projectId = params.id as string;
     const [project, setProject] = useState<Project | null>(null);
     const [allocatedResources, setAllocatedResources] = useState<(Allocation & { resource?: Resource })[]>([]);
@@ -37,7 +37,8 @@ export default function ProjectDetailPage() {
             if (projectDoc.exists()) {
                 setProject({ id: projectDoc.id, ...projectDoc.data() } as Project);
             } else {
-                notFound();
+                // Client-side fallback for 404
+                setProject(null);
             }
             setLoading(false);
         };
@@ -73,7 +74,7 @@ export default function ProjectDetailPage() {
         };
     }, [project, allResources]);
 
-     const handleAiAssignClick = () => {
+    const handleAiAssignClick = () => {
         if (allResources.length === 0) {
             toast({
                 title: "No Resources Available",
@@ -90,7 +91,14 @@ export default function ProjectDetailPage() {
     }
 
     if (!project) {
-        return notFound();
+        return (
+            <div className="flex items-center justify-center h-[60vh]">
+                <p className="text-lg text-muted-foreground">Project not found.</p>
+                <Button className="ml-4" onClick={() => router.push('/projects')}>
+                    Go Back
+                </Button>
+            </div>
+        );
     }
 
     return (
