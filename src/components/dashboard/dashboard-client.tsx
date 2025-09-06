@@ -2,23 +2,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { DndContext, useDraggable, useDroppable, closestCenter, DragEndEvent } from '@dnd-kit/core';
 import { collection, query, onSnapshot, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ProjectsTable } from './projects-table';
 import { ResourcesTable } from './resources-table';
 import type { Project, Resource, Allocation, ProjectRequest } from '@/lib/types';
-import { Briefcase, Users, FileText, UserPlus } from 'lucide-react';
+import { Briefcase, Users, UserPlus } from 'lucide-react';
 import { AddProjectModal } from './add-project-modal';
 import { AddResourceModal, ResourceFormValues } from './add-resource-modal';
 import { ImportCvModal } from './import-cv-modal';
 import { useAuth } from '@/contexts/auth-context';
-import { getResourceByEmail } from '@/services/firestore-service';
 import { Skeleton } from '../ui/skeleton';
-import { Button } from '../ui/button';
+import { ResourceAiSuggestions } from '../resource/resource-ai-suggestions';
+import { useToast } from '@/hooks/use-toast';
 
 export function DashboardClient() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [allocations, setAllocations] = useState<Allocation[]>([]);
@@ -30,9 +32,12 @@ export function DashboardClient() {
   const [isAddResourceOpen, setIsAddResourceOpen] = useState(false);
   const [prefillData, setPrefillData] = useState<Partial<ResourceFormValues> | undefined>();
 
+  // State for AI suggestions modal
+  const [suggestionModalOpen, setSuggestionModalOpen] = useState(false);
+  const [selectedResourceForSuggestion, setSelectedResourceForSuggestion] = useState<Resource | null>(null);
+
   useEffect(() => {
     if (user?.role === 'Team Member' && user.email) {
-        // We use onSnapshot to listen for real-time creation of the resource profile
         setLoadingResourceProfile(true);
         const q = query(collection(db, "resources"), where("email", "==", user.email));
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -81,7 +86,32 @@ export function DashboardClient() {
     }
   }, []);
 
-  // Team member view
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { over, active } = event;
+
+    if (over && over.data.current?.type === 'project' && active.data.current?.type === 'resource') {
+        const resource = active.data.current.resource as Resource;
+        const project = over.data.current.project as Project;
+        
+        if (projects.length === 0) {
+          toast({
+            title: "No Projects Available",
+            description: "Please add a project before getting suggestions.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+            title: 'Assigning Resource',
+            description: `You are assigning ${resource.name} to ${project.name}. Opening AI suggestions...`,
+        });
+
+        setSelectedResourceForSuggestion(resource);
+        setSuggestionModalOpen(true);
+    }
+  };
+
   if (user?.role === 'Team Member') {
     if (loadingResourceProfile) {
         return (
@@ -169,12 +199,12 @@ export function DashboardClient() {
 
   // Admin and Project Manager view
   return (
-    <>
+    <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
       <div className="flex items-center justify-between space-y-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight font-headline">Dashboard</h1>
           <p className="text-muted-foreground">
-            Manage your projects and resources with intelligent insights.
+            Manage your projects and resources. Drag a resource to a project to assign them.
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -209,6 +239,14 @@ export function DashboardClient() {
           </CardContent>
         </Card>
       </div>
-    </>
+      {selectedResourceForSuggestion && (
+          <ResourceAiSuggestions
+              resource={selectedResourceForSuggestion}
+              allProjects={projects}
+              open={suggestionModalOpen}
+              onOpenChange={setSuggestionModalOpen}
+          />
+      )}
+    </DndContext>
   );
 }

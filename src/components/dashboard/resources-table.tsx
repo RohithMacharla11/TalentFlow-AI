@@ -1,6 +1,9 @@
+
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import {
   Table,
   TableBody,
@@ -17,6 +20,7 @@ import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { ResourceAiSuggestions } from '../resource/resource-ai-suggestions';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 
 interface ResourcesTableProps {
@@ -26,32 +30,107 @@ interface ResourcesTableProps {
   loading: boolean;
 }
 
-export function ResourcesTable({ resources, projects, allocations, loading }: ResourcesTableProps) {
-  const router = useRouter();
-  const [suggestionModalOpen, setSuggestionModalOpen] = useState(false);
-  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
-  const { toast } = useToast();
+function ResourceRow({ resource, projects, allocations }: { resource: Resource } & Omit<ResourcesTableProps, 'resources' | 'loading'>) {
+    const router = useRouter();
+    const { toast } = useToast();
+    const [suggestionModalOpen, setSuggestionModalOpen] = useState(false);
+    const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
 
-  const handleRowClick = (resourceId: string) => {
-    router.push(`/resource/${resourceId}`);
-  };
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+        id: `resource-drag-${resource.id}`,
+        data: {
+            type: 'resource',
+            resource: resource,
+        }
+    });
 
-  const handleAssignClick = (e: React.MouseEvent, resource: Resource) => {
-    e.stopPropagation();
-    if (projects.length === 0) {
-      toast({
-        title: "No Projects Available",
-        description: "Please add a project before getting suggestions.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setSelectedResource(resource);
-    setSuggestionModalOpen(true);
-  };
+    const style = {
+        transform: CSS.Translate.toString(transform),
+    };
 
+    const handleRowClick = (resourceId: string) => router.push(`/resource/${resourceId}`);
+
+    const handleAssignClick = (e: React.MouseEvent, resource: Resource) => {
+        e.stopPropagation();
+        if (projects.length === 0) {
+            toast({
+                title: "No Projects Available",
+                description: "Please add a project before getting suggestions.",
+                variant: "destructive",
+            });
+            return;
+        }
+        setSelectedResource(resource);
+        setSuggestionModalOpen(true);
+    };
+
+    const isAssigned = allocations.some(a => a.resourceId === resource.id);
+
+    return (
+      <>
+        <TableRow
+            ref={setNodeRef}
+            style={style}
+            {...listeners}
+            {...attributes}
+            key={resource.id}
+            onClick={() => handleRowClick(resource.id)}
+            className={cn("cursor-grab", { "opacity-50 z-50 bg-card shadow-lg": isDragging })}
+        >
+            <TableCell className="font-medium">
+                <div className="flex items-center gap-3">
+                    <Avatar>
+                        <AvatarImage src={resource.avatar} alt={resource.name} data-ai-hint="person portrait" />
+                        <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <div className="font-semibold">{resource.name}</div>
+                        <div className="text-sm text-muted-foreground">{resource.email}</div>
+                    </div>
+                </div>
+            </TableCell>
+            <TableCell>{resource.role}</TableCell>
+            <TableCell>
+                <div className="flex flex-wrap gap-1">
+                    {resource.skills.slice(0, 4).map((skill) => (
+                        <Badge key={skill} variant="secondary">{skill}</Badge>
+                    ))}
+                    {resource.skills.length > 4 && (
+                        <Badge variant="outline">+{resource.skills.length - 4}</Badge>
+                    )}
+                </div>
+            </TableCell>
+            <TableCell>
+                <div className="flex items-center gap-2">
+                    <Progress value={(resource.availability / 40) * 100} className="h-2" />
+                    <span className="text-xs text-muted-foreground">{resource.availability}h/wk</span>
+                </div>
+            </TableCell>
+            <TableCell className="text-right">
+                <Button
+                    variant={isAssigned ? "secondary" : "outline"}
+                    size="sm"
+                    onClick={(e) => handleAssignClick(e, resource)}
+                >
+                    {isAssigned ? 'Assigned' : 'Assign'}
+                </Button>
+            </TableCell>
+        </TableRow>
+        {selectedResource && (
+              <ResourceAiSuggestions
+                  resource={selectedResource}
+                  allProjects={projects}
+                  open={suggestionModalOpen}
+                  onOpenChange={setSuggestionModalOpen}
+              />
+        )}
+      </>
+    );
+}
+
+
+export function ResourcesTable(props: ResourcesTableProps) {
   return (
-    <>
       <Table>
         <TableHeader>
           <TableRow>
@@ -63,7 +142,7 @@ export function ResourcesTable({ resources, projects, allocations, loading }: Re
           </TableRow>
         </TableHeader>
         <TableBody>
-          {loading ? (
+          {props.loading ? (
             [...Array(5)].map((_, i) => (
               <TableRow key={i}>
                   <TableCell>
@@ -82,68 +161,9 @@ export function ResourcesTable({ resources, projects, allocations, loading }: Re
               </TableRow>
             ))
           ) : (
-          resources.map((resource) => {
-            const isAssigned = allocations.some(a => a.resourceId === resource.id);
-            return (
-              <TableRow 
-                key={resource.id} 
-                onClick={() => handleRowClick(resource.id)}
-                className="cursor-pointer"
-              >
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={resource.avatar} alt={resource.name} data-ai-hint="person portrait" />
-                      <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-semibold">{resource.name}</div>
-                      <div className="text-sm text-muted-foreground">{resource.email}</div>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>{resource.role}</TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {resource.skills.slice(0, 4).map((skill) => (
-                      <Badge key={skill} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
-                    {resource.skills.length > 4 && (
-                      <Badge variant="outline">+{resource.skills.length - 4}</Badge>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Progress value={(resource.availability / 40) * 100} className="h-2" />
-                    <span className="text-xs text-muted-foreground">{resource.availability}h/wk</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                    <Button 
-                      variant={isAssigned ? "secondary" : "outline"} 
-                      size="sm"
-                      onClick={(e) => handleAssignClick(e, resource)}
-                    >
-                      {isAssigned ? 'Assigned' : 'Assign'}
-                    </Button>
-                </TableCell>
-              </TableRow>
-            )
-          })
+            props.resources.map((resource) => <ResourceRow key={resource.id} resource={resource} {...props} />)
           )}
         </TableBody>
       </Table>
-      {selectedResource && (
-          <ResourceAiSuggestions
-              resource={selectedResource}
-              allProjects={projects}
-              open={suggestionModalOpen}
-              onOpenChange={setSuggestionModalOpen}
-          />
-      )}
-    </>
   );
 }

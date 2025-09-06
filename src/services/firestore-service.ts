@@ -8,6 +8,7 @@
 import { collection, getDocs, addDoc, serverTimestamp, doc, setDoc, updateDoc, query, where, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Project, Resource, Allocation, User, ProjectRequest } from '@/lib/types';
+import { sendAllocationNotification } from './notification-service';
 
 
 /**
@@ -71,6 +72,19 @@ export async function getResources(): Promise<Resource[]> {
   return resourceList;
 }
 
+/**
+ * Fetches a single resource by its ID from Firestore.
+ * @param resourceId - The ID of the resource to fetch.
+ * @returns A promise that resolves to the resource data or null if not found.
+ */
+export async function getResourceById(resourceId: string): Promise<Resource | null> {
+    const resourceDoc = await getDoc(doc(db, "resources", resourceId));
+    if (resourceDoc.exists()) {
+        return { id: resourceDoc.id, ...resourceDoc.data() } as Resource;
+    }
+    return null;
+}
+
 
 /**
  * Fetches a single resource by its email from Firestore.
@@ -104,11 +118,22 @@ export async function getAllocations(): Promise<Allocation[]> {
  * @param allocation - The allocation data to save.
  * @returns A promise that resolves when the allocation is created.
  */
-export async function allocateResource(allocation: Omit<Allocation, 'id'>): Promise<void> {
+export async function allocateResource(allocation: Omit<Allocation, 'id' | 'createdAt'>): Promise<void> {
   await addDoc(collection(db, 'allocations'), {
     ...allocation,
     createdAt: serverTimestamp(),
   });
+  // This is where you would trigger a real notification
+  const resource = await getResourceById(allocation.resourceId);
+  const project = await getProjectById(allocation.projectId);
+  if (resource && project) {
+    await sendAllocationNotification({
+        resourceName: resource.name,
+        projectName: project.name,
+        resourceEmail: resource.email,
+        details: `You have been assigned to ${project.name}. AI Reasoning: "${allocation.reasoning}"`
+    });
+  }
 }
 
 /**
