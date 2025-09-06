@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DndContext, useDraggable, useDroppable, closestCenter, DragEndEvent } from '@dnd-kit/core';
 import { collection, query, onSnapshot, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -15,12 +14,9 @@ import { AddResourceModal, ResourceFormValues } from './add-resource-modal';
 import { ImportCvModal } from './import-cv-modal';
 import { useAuth } from '@/contexts/auth-context';
 import { Skeleton } from '../ui/skeleton';
-import { ResourceAiSuggestions } from '../resource/resource-ai-suggestions';
-import { useToast } from '@/hooks/use-toast';
 
 export function DashboardClient() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [allocations, setAllocations] = useState<Allocation[]>([]);
@@ -31,12 +27,6 @@ export function DashboardClient() {
   
   const [isAddResourceOpen, setIsAddResourceOpen] = useState(false);
   const [prefillData, setPrefillData] = useState<Partial<ResourceFormValues> | undefined>();
-
-  // State for AI suggestions modal
-  const [suggestionModalOpen, setSuggestionModalOpen] = useState(false);
-  const [selectedResourceForSuggestion, setSelectedResourceForSuggestion] = useState<Resource | null>(null);
-  const [targetProjectForSuggestion, setTargetProjectForSuggestion] = useState<Project | null>(null);
-
 
   useEffect(() => {
     if (user?.role === 'Team Member' && user.email) {
@@ -87,33 +77,6 @@ export function DashboardClient() {
         unsubscribeRequests();
     }
   }, []);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { over, active } = event;
-
-    if (over && over.data.current?.type === 'project' && active.data.current?.type === 'resource') {
-        const resource = active.data.current.resource as Resource;
-        const project = over.data.current.project as Project;
-        
-        if (projects.length === 0) {
-          toast({
-            title: "No Projects Available",
-            description: "Please add a project before getting suggestions.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        toast({
-            title: 'Analyzing Fit...',
-            description: `Checking suitability of ${resource.name} for ${project.name}.`,
-        });
-
-        setSelectedResourceForSuggestion(resource);
-        setTargetProjectForSuggestion(project);
-        setSuggestionModalOpen(true);
-    }
-  };
 
   if (user?.role === 'Team Member') {
     if (loadingResourceProfile) {
@@ -202,12 +165,12 @@ export function DashboardClient() {
 
   // Admin and Project Manager view
   return (
-    <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
+    <>
       <div className="flex items-center justify-between space-y-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight font-headline">Dashboard</h1>
           <p className="text-muted-foreground">
-            Manage your projects and resources. Drag a resource to a project to assign them.
+            Manage your projects and resources.
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -242,20 +205,6 @@ export function DashboardClient() {
           </CardContent>
         </Card>
       </div>
-      {selectedResourceForSuggestion && (
-          <ResourceAiSuggestions
-              resource={selectedResourceForSuggestion}
-              allProjects={projects}
-              open={suggestionModalOpen}
-              onOpenChange={(isOpen) => {
-                setSuggestionModalOpen(isOpen);
-                if (!isOpen) {
-                    setTargetProjectForSuggestion(null);
-                }
-              }}
-              targetProject={targetProjectForSuggestion}
-          />
-      )}
-    </DndContext>
+    </>
   );
 }

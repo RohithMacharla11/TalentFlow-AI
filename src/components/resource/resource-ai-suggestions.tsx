@@ -26,10 +26,9 @@ interface ResourceAiSuggestionsProps {
     allProjects: Project[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    targetProject?: Project | null;
 }
 
-export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChange, targetProject }: ResourceAiSuggestionsProps) {
+export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChange }: ResourceAiSuggestionsProps) {
     const [suggestions, setSuggestions] = useState<IntelligentProjectMatchingOutput | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
@@ -39,20 +38,15 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
      useEffect(() => {
         if (open) {
             handleFetchSuggestions();
-            if (targetProject) {
-                setSelectedProjects([targetProject.id]);
-            }
         } else {
             setSuggestions(null);
             setSelectedProjects([]);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, targetProject]);
+    }, [open]);
 
     const handleFetchSuggestions = async () => {
-        const projectsToEvaluate = targetProject ? [targetProject] : allProjects;
-        if (projectsToEvaluate.length === 0) {
-            setSuggestions({ projectAllocations: [] });
+        if (allProjects.length === 0) {
             return;
         }
 
@@ -66,7 +60,7 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
                     skills: resource.skills,
                     availability: resource.availability,
                 },
-                projectProfiles: projectsToEvaluate.map(p => ({
+                projectProfiles: allProjects.map(p => ({
                     id: p.id,
                     name: p.name,
                     requiredSkills: p.requiredSkills,
@@ -94,8 +88,8 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
         try {
             const allocationPromises = projectIds.map(projectId => {
                 const suggestion = suggestions?.projectAllocations.find(p => p.projectId === projectId);
-                const match = suggestion?.matchPercentage ?? (targetProject ? 0 : 50); // Provide a default if no suggestion
-                const reasoning = suggestion?.reasoning ?? 'Manual assignment via drag-and-drop.';
+                const match = suggestion?.matchPercentage ?? 50; 
+                const reasoning = suggestion?.reasoning ?? 'Manual assignment.';
                 return addDoc(collection(db, 'allocations'), {
                     projectId,
                     resourceId: resource.id,
@@ -150,16 +144,13 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
                 <DialogHeader>
                     <DialogTitle>AI Project Recommendations</DialogTitle>
                     <DialogDescription>
-                        {targetProject 
-                            ? `Analysis for assigning ${resource.name} to ${targetProject.name}.`
-                            : `Top project matches for ${resource.name}, ranked by best fit. Select projects to assign.`
-                        }
+                        Top project matches for {resource.name}, ranked by best fit. Select projects to assign.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 max-h-[60vh] overflow-y-auto pr-4">
                         {isLoading ? (
                         <div className="space-y-4">
-                            {[...Array(targetProject ? 1 : 3)].map((_, i) => (
+                            {[...Array(3)].map((_, i) => (
                                 <div key={i} className="flex items-center space-x-4 p-2">
                                      <Skeleton className="h-5 w-5 rounded-sm" />
                                      <div className="flex-1 space-y-2">
@@ -203,20 +194,12 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
                     )}
                 </div>
                 <DialogFooter className="sm:justify-between gap-2">
-                    {targetProject ? (
-                         <Button onClick={handleManualAssign} disabled={isAssigning || isLoading || selectedProjects.length === 0}>
-                            {isAssigning ? 'Assigning...' : `Confirm Assignment to ${targetProject.name}`}
-                        </Button>
-                    ) : (
-                        <>
-                        <Button variant="secondary" onClick={handleAutoAssign} disabled={isAssigning || isLoading || !suggestions?.projectAllocations.length}>
-                            <Zap className="mr-2 h-4 w-4"/> Auto-Assign Best Fit
-                        </Button>
-                        <Button onClick={handleManualAssign} disabled={isAssigning || isLoading || selectedProjects.length === 0}>
-                            {isAssigning ? 'Assigning...' : `Assign to Selected (${selectedProjects.length})`}
-                        </Button>
-                        </>
-                    )}
+                    <Button variant="secondary" onClick={handleAutoAssign} disabled={isAssigning || isLoading || !suggestions?.projectAllocations.length}>
+                        <Zap className="mr-2 h-4 w-4"/> Auto-Assign Best Fit
+                    </Button>
+                    <Button onClick={handleManualAssign} disabled={isAssigning || isLoading || selectedProjects.length === 0}>
+                        {isAssigning ? 'Assigning...' : `Assign to Selected (${selectedProjects.length})`}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

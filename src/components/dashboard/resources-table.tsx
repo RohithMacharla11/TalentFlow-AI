@@ -2,8 +2,6 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
 import {
   Table,
   TableBody,
@@ -36,18 +34,6 @@ function ResourceRow({ resource, projects, allocations }: { resource: Resource }
     const [suggestionModalOpen, setSuggestionModalOpen] = useState(false);
     const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
 
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id: `resource-drag-${resource.id}`,
-        data: {
-            type: 'resource',
-            resource: resource,
-        }
-    });
-
-    const style = {
-        transform: CSS.Translate.toString(transform),
-    };
-
     const handleRowClick = (resourceId: string) => router.push(`/resource/${resourceId}`);
 
     const handleAssignClick = (e: React.MouseEvent, resource: Resource) => {
@@ -70,12 +56,8 @@ function ResourceRow({ resource, projects, allocations }: { resource: Resource }
       <>
         <TableRow
             key={resource.id}
-            ref={setNodeRef}
-            style={style}
-            {...listeners}
-            {...attributes}
             onClick={() => handleRowClick(resource.id)}
-            className={cn("cursor-grab", { "opacity-50 z-50 bg-card shadow-lg": isDragging })}
+            className="cursor-pointer"
         >
             <TableCell className="font-medium">
                 <div className="flex items-center gap-3">
