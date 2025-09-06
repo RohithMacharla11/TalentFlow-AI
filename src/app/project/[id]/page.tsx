@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -12,9 +13,11 @@ import { Pen, Sparkles, Zap } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProjectAiSuggestions } from '@/components/project/project-ai-suggestions';
 import { useToast } from '@/hooks/use-toast';
+import { useParams } from 'next/navigation';
 
-export default function ProjectDetailPage({ params }: { params: { id: string } }) {
-  const projectId = params.id;
+export default function ProjectDetailPage() {
+  const params = useParams();
+  const projectId = params.id as string;
   const { toast } = useToast();
 
   const [project, setProject] = useState<Project | null>(null);
@@ -145,7 +148,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                   <CardHeader>
                     <CardTitle>Audit Logs</CardTitle>
                     <CardDescription>History of allocations for this project.</CardDescription>
-                  </CardHeader>
+                  </Header>
                   <CardContent>
                     <p>A detailed audit trail will be implemented here.</p>
                   </CardContent>
