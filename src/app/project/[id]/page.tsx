@@ -8,7 +8,7 @@ import type { Project, Resource, Allocation } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { notFound, useParams } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import {
     Tabs,
     TabsContent,
@@ -16,12 +16,13 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Pen, Sparkles, Zap } from 'lucide-react';
+import { Pen, Sparkles, Zap, ArrowLeft } from 'lucide-react';
 import { ProjectAiSuggestions } from '@/components/project/project-ai-suggestions';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ProjectDetailPage() {
     const params = useParams();
+    const router = useRouter();
     const projectId = params.id as string;
     const [project, setProject] = useState<Project | null>(null);
     const [allocatedResources, setAllocatedResources] = useState<(Allocation & { resource?: Resource })[]>([]);
@@ -95,11 +96,14 @@ export default function ProjectDetailPage() {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+             <div className="flex items-center gap-4 mb-4">
+                <Button variant="outline" size="icon" onClick={() => router.back()}>
+                    <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h1 className="text-3xl font-bold tracking-tight font-headline">{project.name}</h1>
+             </div>
             <div className="flex items-center justify-between space-y-2">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight font-headline">{project.name}</h1>
-                    <p className="text-muted-foreground">{project.description}</p>
-                </div>
+                <p className="text-muted-foreground">{project.description}</p>
                 <div className="flex items-center gap-2">
                     <Badge variant={project.priority === 'High' ? 'destructive' : project.priority === 'Medium' ? 'secondary' : 'outline'}>
                         {project.priority} Priority
