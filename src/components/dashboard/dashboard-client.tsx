@@ -83,7 +83,7 @@ export function DashboardClient() {
             <Users className="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <ResourcesTable resources={resources} loading={loading} />
+            <ResourcesTable resources={resources} projects={projects} allocations={allocations} loading={loading} />
           </CardContent>
         </Card>
       </div>
