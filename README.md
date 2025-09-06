@@ -91,7 +91,7 @@ For the application to work correctly, you need to create the following collecti
 -   `resources`: Stores detailed profiles of team members.
 -   `projects`: Stores project details.
 -   `allocations`: Stores the links between resources and projects.
--   `requests`: Stores requests from team members to join projects.
+--   `requests`: Stores requests from team members to join projects.
 
 After these steps, your application will be connected to your own Firebase backend. You will need to sign up as a new user in your own application to start adding projects and resources.
 
