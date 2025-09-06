@@ -45,6 +45,7 @@ export function DashboardClient() {
   }, [user]);
 
   useEffect(() => {
+    setLoading(true);
     const qProjects = query(collection(db, "projects"));
     const unsubscribeProjects = onSnapshot(qProjects, (snapshot) => {
         setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
@@ -104,10 +105,10 @@ export function DashboardClient() {
                 </CardHeader>
                 <CardContent>
                     {loading || loadingResourceProfile ? (
-                        <div className="space-y-2">
-                            <Skeleton className="h-12 w-full" />
-                            <Skeleton className="h-12 w-full" />
-                            <Skeleton className="h-12 w-full" />
+                        <div className="space-y-2 p-4">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
                         </div>
                     ) : (
                         <ProjectsTable 
@@ -137,7 +138,7 @@ export function DashboardClient() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          {user?.role === 'Administrator' && <AddProjectModal />}
+          {user?.role !== 'Team Member' && <AddProjectModal />}
           {user?.role === 'Administrator' && <ImportCvModal setPrefillData={setPrefillData} setAddResourceOpen={setIsAddResourceOpen} />}
           {user?.role === 'Administrator' && 
             <AddResourceModal 
