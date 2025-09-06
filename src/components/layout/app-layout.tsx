@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Calendar, Users, Briefcase, Bot } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, GanttChart, ListTodo, Bot } from 'lucide-react';
 import { Chatbot } from '../chatbot';
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -22,6 +22,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/gantt', label: 'Gantt Chart', icon: GanttChart },
+    { href: '/allocations', label: 'Allocations', icon: ListTodo },
     { href: '/calendar', label: 'Calendar', icon: Calendar },
     { href: '/teams', label: 'Teams', icon: Users },
   ];

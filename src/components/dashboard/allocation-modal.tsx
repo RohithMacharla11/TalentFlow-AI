@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Target, Info, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { Target, Info, CheckCircle, AlertTriangle, XCircle, Calendar, Clock } from 'lucide-react';
 import type { Project, Resource, Allocation } from '@/lib/types';
 
 interface AllocationModalProps {
@@ -86,14 +86,20 @@ export function AllocationModal({ project, allocations, resources }: AllocationM
                         </div>
                     </div>
                 </div>
-                <div className="ml-16 pl-2 border-l-2 space-y-2 text-sm">
+                <div className="ml-16 pl-2 border-l-2 space-y-3 text-sm">
                     <h4 className="font-semibold text-muted-foreground">Reasoning:</h4>
-                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        <li><span className="font-semibold text-foreground">{allocation.match}% skill match</span> with project requirements.</li>
-                        <li>Resource has <span className="font-semibold text-foreground">{resource.availability} hours/week</span> available.</li>
-                        <li>Availability aligns with project deadline on <span className="font-semibold text-foreground">{new Date(project.deadline).toLocaleDateString()}</span>.</li>
-                        <li className="text-green-700 dark:text-green-400">Overall, an excellent fit for the project's needs.</li>
-                    </ul>
+                    <p className="text-muted-foreground italic">"{allocation.reasoning}"</p>
+                    <div className="space-y-2 text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span>Resource has <span className="font-semibold text-foreground">{resource.availability} hours/week</span> available.</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            <span>Aligns with project deadline of <span className="font-semibold text-foreground">{new Date(project.deadline).toLocaleDateString()}</span>.</span>
+                        </div>
+
+                    </div>
                 </div>
                 <Separator className="my-4" />
               </div>

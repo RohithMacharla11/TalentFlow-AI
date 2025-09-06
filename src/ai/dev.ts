@@ -8,3 +8,4 @@ import '@/ai/flows/intelligent-project-matching.ts';
 import '@/ai/flows/explainable-resource-assignment.ts';
 import '@/ai/flows/allocate-resources-chatbot.ts';
 import '@/ai/flows/extract-info-from-cv.ts';
+import '@/services/firestore-service.ts';

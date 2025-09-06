@@ -31,8 +31,10 @@ const projectSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
   description: z.string().min(1, 'Description is required'),
   requiredSkills: z.string().min(1, 'Skills are required'),
+  startDate: z.date({ required_error: 'Start date is required' }),
   deadline: z.date({ required_error: 'Deadline is required' }),
   priority: z.enum(['High', 'Medium', 'Low']),
+  budget: z.coerce.number().optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -52,6 +54,7 @@ export function AddProjectModal() {
       await addDoc(collection(db, 'projects'), {
         ...data,
         requiredSkills: data.requiredSkills.split(',').map(s => s.trim()),
+        startDate: data.startDate.toISOString(),
         deadline: data.deadline.toISOString(),
         createdAt: serverTimestamp(),
       });
@@ -103,6 +106,38 @@ export function AddProjectModal() {
           </div>
           <div className="grid grid-cols-2 gap-4">
              <div className="grid gap-2">
+               <Label>Start Date</Label>
+                <Controller
+                  name="startDate"
+                  control={control}
+                  render={({ field }) => (
+                     <Popover>
+                        <PopoverTrigger asChild>
+                           <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                           <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                  )}
+                />
+               {errors.startDate && <p className="text-red-500 text-sm">{errors.startDate.message}</p>}
+             </div>
+             <div className="grid gap-2">
                <Label>Deadline</Label>
                 <Controller
                   name="deadline"
@@ -134,6 +169,8 @@ export function AddProjectModal() {
                 />
                {errors.deadline && <p className="text-red-500 text-sm">{errors.deadline.message}</p>}
              </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
              <div className="grid gap-2">
                <Label htmlFor="priority">Priority</Label>
                <Controller
@@ -153,6 +190,11 @@ export function AddProjectModal() {
                   )}
                 />
              </div>
+            <div className="grid gap-2">
+                <Label htmlFor="budget">Budget ($)</Label>
+                <Input id="budget" type="number" {...register('budget')} />
+                {errors.budget && <p className="text-red-500 text-sm">{errors.budget.message}</p>}
+            </div>
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>

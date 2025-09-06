@@ -17,13 +17,16 @@ export type Project = {
   description: string;
   requiredSkills: string[];
   deadline: string; // ISO date string
+  startDate: string; // ISO date string
   priority: 'High' | 'Medium' | 'Low';
   budget?: number;
 };
 
 export type Allocation = {
+  id: string;
   resourceId: string;
   projectId: string;
   match: number; // 0-100
   status: 'matched' | 'partial' | 'conflict';
+  reasoning: string;
 };

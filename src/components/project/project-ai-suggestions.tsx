@@ -84,11 +84,14 @@ export function ProjectAiSuggestions({ project, allResources, open, onOpenChange
         setIsAssigning(true);
         try {
             const allocationPromises = resourceIds.map(resourceId => {
-                const match = suggestions?.resourceAllocations.find(r => r.resourceId === resourceId)?.matchPercentage ?? 0;
+                const suggestion = suggestions?.resourceAllocations.find(r => r.resourceId === resourceId);
+                const match = suggestion?.matchPercentage ?? 0;
+                const reasoning = suggestion?.reasoning ?? 'N/A';
                 return addDoc(collection(db, 'allocations'), {
                     projectId: project.id,
                     resourceId,
                     match,
+                    reasoning,
                     status: match > 90 ? 'matched' : match > 60 ? 'partial' : 'conflict',
                 });
             });
