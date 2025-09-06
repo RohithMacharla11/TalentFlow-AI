@@ -87,8 +87,7 @@ export function AddResourceModal() {
             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="role">Role</Label>
-            <Input id="role" {...register('role')} />
+            <Label htmlFor="role">Role</Label>            <Input id="role" {...register('role')} />
             {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
           </div>
           <div className="grid gap-2">
