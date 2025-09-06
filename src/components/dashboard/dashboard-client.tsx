@@ -28,6 +28,17 @@ export function DashboardClient() {
   const [prefillData, setPrefillData] = useState<Partial<ResourceFormValues> | undefined>();
 
   useEffect(() => {
+    const fetchAndSetCurrentUserResource = async (email: string) => {
+        const resourceProfile = await getResourceByEmail(email);
+        setCurrentUserResource(resourceProfile);
+    };
+
+    if (user?.role === 'Team Member' && user.email) {
+        fetchAndSetCurrentUserResource(user.email);
+    }
+  }, [user]);
+
+  useEffect(() => {
     const qProjects = query(collection(db, "projects"));
     const unsubscribeProjects = onSnapshot(qProjects, (snapshot) => {
         setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
@@ -44,14 +55,10 @@ export function DashboardClient() {
         setAllocations(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Allocation)));
     });
     
-    const qRequests = query(collection(db, "requests"));
+    const qRequests = query(collection(db, "requests"), where("status", "==", "pending"));
     const unsubscribeRequests = onSnapshot(qRequests, (snapshot) => {
         setRequests(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ProjectRequest)));
     });
-
-    if (user?.role === 'Team Member' && user.email) {
-      getResourceByEmail(user.email).then(res => setCurrentUserResource(res));
-    }
     
     return () => {
         unsubscribeProjects();
@@ -59,12 +66,11 @@ export function DashboardClient() {
         unsubscribeAllocations();
         unsubscribeRequests();
     }
-  }, [user]);
+  }, []);
 
   // Team member view
   if (user?.role === 'Team Member') {
     const assignedProjectIds = allocations.filter(a => a.resourceId === currentUserResource?.id).map(a => a.projectId);
-    const requestedProjectIds = requests.filter(r => r.resourceId === currentUserResource?.id && r.status === 'pending').map(r => r.projectId);
     const assignedProjects = projects.filter(p => assignedProjectIds.includes(p.id));
 
     return (

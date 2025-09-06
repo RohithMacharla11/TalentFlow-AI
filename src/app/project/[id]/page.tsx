@@ -16,14 +16,16 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Pen, Sparkles, Zap, ArrowLeft, FileText, CheckCircle } from 'lucide-react';
+import { Pen, Sparkles, Zap, ArrowLeft, FileText, CheckCircle, Users } from 'lucide-react';
 import { ProjectAiSuggestions } from '@/components/project/project-ai-suggestions';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function ProjectDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const { user } = useAuth();
     const projectId = params.id as string;
     const [project, setProject] = useState<Project | null>(null);
     const [allocatedResources, setAllocatedResources] = useState<(Allocation & { resource?: Resource })[]>([]);
@@ -99,6 +101,8 @@ export default function ProjectDetailPage() {
         return notFound();
     }
 
+    const isManager = user?.role === 'Administrator' || user?.role === 'Project Manager';
+
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
              <div className="flex items-center gap-4 mb-4">
@@ -113,14 +117,16 @@ export default function ProjectDetailPage() {
                     <Badge variant={project.priority === 'High' ? 'destructive' : project.priority === 'Medium' ? 'secondary' : 'outline'}>
                         {project.priority} Priority
                     </Badge>
-                    <Button variant="outline" size="icon">
-                        <Pen className="h-4 w-4" />
-                    </Button>
+                    {isManager && (
+                      <Button variant="outline" size="icon">
+                          <Pen className="h-4 w-4" />
+                      </Button>
+                    )}
                 </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-                <Card className="md:col-span-1">
+                <Card className={isManager ? "md:col-span-1" : "md:col-span-3"}>
                     <CardHeader>
                         <CardTitle>Project Details</CardTitle>
                     </CardHeader>
@@ -137,57 +143,44 @@ export default function ProjectDetailPage() {
                                 ))}
                             </div>
                         </div>
+                         <div className="pt-4">
+                            <h3 className="font-semibold flex items-center gap-2 mb-3">
+                                <Users className="h-5 w-5" /> Allocated Team
+                            </h3>
+                             {allocatedResources.length > 0 ? (
+                                <div className="space-y-4">
+                                    {allocatedResources.map(({ resource }) => (
+                                        resource && (
+                                            <div key={resource.id} className="flex items-center justify-between p-2 rounded-md">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-10 w-10 border">
+                                                        <AvatarImage src={resource.avatar} alt={resource.name} />
+                                                        <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold">{resource.name}</p>
+                                                        <p className="text-sm text-muted-foreground">{resource.role}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-muted-foreground text-sm">No resources allocated yet.</p>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
 
+                {isManager && (
                 <div className="md:col-span-2">
-                    <Tabs defaultValue="allocated">
-                        <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="allocated">Allocated Resources</TabsTrigger>
+                    <Tabs defaultValue="suggestions">
+                        <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
                             <TabsTrigger value="logs">Audit Logs</TabsTrigger>
                         </TabsList>
-
-                        <TabsContent value="allocated">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Allocated Resources</CardTitle>
-                                    <CardDescription>
-                                        The team currently assigned to this project.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    {allocatedResources.length > 0 ? (
-                                        <div className="space-y-4">
-                                            {allocatedResources.map(({ resource, match }) => (
-                                                resource && (
-                                                    <div key={resource.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
-                                                        <div className="flex items-center gap-3">
-                                                            <Avatar className="h-10 w-10 border">
-                                                                <AvatarImage src={resource.avatar} alt={resource.name} />
-                                                                <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div>
-                                                                <p className="font-semibold">{resource.name}</p>
-                                                                <p className="text-sm text-muted-foreground">{resource.role}</p>
-                                                            </div>
-                                                        </div>
-                                                        {match && <Badge variant="outline">{match}% Match</Badge>}
-                                                    </div>
-                                                )
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-10">
-                                            <p className="text-muted-foreground mb-4">
-                                                No resources allocated yet. Use the "AI Suggestions" tab to find and assign team members.
-                                            </p>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-
+                        
                         <TabsContent value="suggestions">
                             <Card>
                                 <CardHeader>
@@ -257,6 +250,7 @@ export default function ProjectDetailPage() {
                         </TabsContent>
                     </Tabs>
                 </div>
+                )}
             </div>
             {project && (
                 <ProjectAiSuggestions 
