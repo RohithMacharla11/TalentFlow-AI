@@ -21,35 +21,37 @@ export default function TeamsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const qResources = onSnapshot(query(collection(db, "resources")), (snapshot) => {
-      setResources(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Resource)));
-      checkLoading();
-    });
-    
-    const qProjects = onSnapshot(query(collection(db, "projects")), (snapshot) => {
-      setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
-      checkLoading();
-    });
-
-    const qAllocations = onSnapshot(query(collection(db, "allocations")), (snapshot) => {
-      setAllocations(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Allocation)));
-      checkLoading();
-    });
+    let unsubs: (() => void)[] = [];
+    let loaded = { resources: false, projects: false, allocations: false };
 
     const checkLoading = () => {
-        // A bit simplistic, but good enough for this page.
-        // It might flash the loading state briefly if collections load at different times.
-        if (resources.length > 0 && projects.length > 0) {
-            setLoading(false);
-        }
-    }
+      if (loaded.resources && loaded.projects && loaded.allocations) {
+        setLoading(false);
+      }
+    };
+
+    unsubs.push(onSnapshot(query(collection(db, "resources")), (snapshot) => {
+      setResources(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Resource)));
+      loaded.resources = true;
+      checkLoading();
+    }));
+
+    unsubs.push(onSnapshot(query(collection(db, "projects")), (snapshot) => {
+      setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
+      loaded.projects = true;
+      checkLoading();
+    }));
+
+    unsubs.push(onSnapshot(query(collection(db, "allocations")), (snapshot) => {
+      setAllocations(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Allocation)));
+      loaded.allocations = true;
+      checkLoading();
+    }));
 
     return () => {
-      qResources();
-      qProjects();
-      qAllocations();
+      unsubs.forEach(unsub => unsub());
     };
-  }, [resources.length, projects.length]);
+  }, []);
 
   const groupBy = (key: 'role' | 'seniority' | 'skills') => {
     return resources.reduce((acc, resource) => {
@@ -60,8 +62,8 @@ export default function TeamsPage() {
         });
       } else {
         const groupKey = resource[key];
-        if (!acc[groupKey]) acc[groupKey] = [];
-        acc[groupKey].push(resource);
+        if (groupKey && !acc[groupKey]) acc[groupKey] = [];
+        if (groupKey) acc[groupKey].push(resource);
       }
       return acc;
     }, {} as GroupedResources);
@@ -73,8 +75,9 @@ export default function TeamsPage() {
 
   const byProject = projects.reduce((acc, project) => {
     const projectAllocations = allocations.filter(a => a.projectId === project.id);
-    if (projectAllocations.length > 0) {
-      acc[project.name] = projectAllocations.map(a => resources.find(r => r.id === a.resourceId)).filter(r => r !== undefined) as Resource[];
+    const members = projectAllocations.map(a => resources.find(r => r.id === a.resourceId)).filter((r): r is Resource => r !== undefined);
+    if (members.length > 0) {
+      acc[project.name] = members;
     }
     return acc;
   }, {} as GroupedResources);
@@ -109,7 +112,7 @@ export default function TeamsPage() {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Object.entries(groupedData).map(([groupName, members]) => {
-                const project = projects.find(p => p.name === groupName);
+                const project = linkTo === 'project' ? projects.find(p => p.name === groupName) : undefined;
                 return (
                  <Card key={groupName}>
                     <CardHeader>

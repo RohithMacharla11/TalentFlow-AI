@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import type { Project, Resource, Allocation } from '@/lib/types';
 import { useAuth } from "@/contexts/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
 
 export default function CalendarPage() {
@@ -91,6 +92,3 @@ export default function CalendarPage() {
     </div>
   );
 }
-
-// Add Card imports for skeleton
-import { Card, CardHeader, CardContent } from "@/components/ui/card";

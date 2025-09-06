@@ -21,6 +21,7 @@ import { ProjectAiSuggestions } from '@/components/project/project-ai-suggestion
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/auth-context';
+import Link from 'next/link';
 
 export default function ProjectDetailPage() {
     const params = useParams();
@@ -152,7 +153,7 @@ export default function ProjectDetailPage() {
                                     {allocatedResources.map((allocation) => (
                                         allocation.resource && (
                                             <div key={allocation.id} className="flex items-center justify-between p-2 rounded-md">
-                                                <div className="flex items-center gap-3">
+                                                <Link href={`/resource/${allocation.resource.id}`} className="flex items-center gap-3 hover:underline">
                                                     <Avatar className="h-10 w-10 border">
                                                         <AvatarImage src={allocation.resource.avatar} alt={allocation.resource.name} />
                                                         <AvatarFallback>{allocation.resource.name.charAt(0)}</AvatarFallback>
@@ -161,7 +162,7 @@ export default function ProjectDetailPage() {
                                                         <p className="font-semibold">{allocation.resource.name}</p>
                                                         <p className="text-sm text-muted-foreground">{allocation.resource.role}</p>
                                                     </div>
-                                                </div>
+                                                </Link>
                                             </div>
                                         )
                                     ))}
