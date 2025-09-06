@@ -114,25 +114,14 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                                 <CardContent>
                                     {allocatedResources.length > 0 ? (
                                         <div className="space-y-4">
-                                            {allocatedResources.map(({ resource, match, status }) => (
-                                                resource && (
-                                                    <div key={resource.id} className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <Avatar>
-                                                                <AvatarImage src={resource.avatar} alt={resource.name} />
-                                                                <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div>
-                                                                <p className="font-semibold">{resource.name}</p>
-                                                                <p className="text-sm text-muted-foreground">{resource.role}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="font-semibold">{match}% Match</p>
-                                                            <p className={`text-sm ${status === 'matched' ? 'text-green-500' : status === 'partial' ? 'text-yellow-500' : 'text-red-500'}`}>{status}</p>
-                                                        </div>
-                                                    </div>
-                                                )
+                                            {allocatedResources.map(({ resource, match, status }).map((resource) =>
+                resource ? (
+                  <Avatar key={resource.id} className="border-2 border-card">
+                    <AvatarImage src={resource.avatar} alt={resource.name} />
+                    <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                ) : null
+              )}
                                             ))}
                                         </div>
                                     ) : (
@@ -149,7 +138,7 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                                  <CardHeader>
                                      <CardTitle>Explainability Logs</CardTitle>
                                      <CardDescription>Reasoning behind each allocation.</CardDescription>
-                                 </CardHeader>
+                                 </Header>
                                  <CardContent>
                                      <p className="text-muted-foreground">View detailed allocation rationale from the main dashboard by clicking the "Why?" button on a project row.</p>
                                  </CardContent>
