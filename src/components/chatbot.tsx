@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Bot, MessageSquare, Send, User } from 'lucide-react';
+import { allocateResources } from '@/ai/flows/allocate-resources-chatbot';
 
 interface Message {
   id: number;
@@ -26,23 +27,35 @@ export function Chatbot() {
     { id: 1, text: "Hello! How can I help you with resource allocation today?", sender: 'bot' }
   ]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSend = () => {
-    if (input.trim() === '') return;
+  const handleSend = async () => {
+    if (input.trim() === '' || isLoading) return;
 
     const userMessage: Message = { id: Date.now(), text: input, sender: 'user' };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setIsLoading(true);
 
-    // Mock AI response
-    setTimeout(() => {
-      const botResponse: Message = {
-        id: Date.now() + 1,
-        text: `Based on your request for "${input}", I've analyzed the project needs and available resources. I suggest assigning Maria to 'Project Phoenix' due to her 98% skill match in React and Python.`,
-        sender: 'bot'
-      };
-      setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+    try {
+        const result = await allocateResources({ request: input });
+        const botResponse: Message = {
+            id: Date.now() + 1,
+            text: result.allocationSummary,
+            sender: 'bot'
+        };
+        setMessages(prev => [...prev, botResponse]);
+    } catch (error) {
+        console.error("Error with chatbot:", error);
+        const errorResponse: Message = {
+            id: Date.now() + 1,
+            text: "I'm sorry, I encountered an error. Please try again.",
+            sender: 'bot'
+        };
+        setMessages(prev => [...prev, errorResponse]);
+    } finally {
+        setIsLoading(false);
+    }
   };
   
   return (
@@ -93,6 +106,16 @@ export function Chatbot() {
                 )}
               </div>
             ))}
+             {isLoading && (
+              <div className="flex items-end gap-2">
+                <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                    <AvatarFallback><Bot className="h-5 w-5"/></AvatarFallback>
+                </Avatar>
+                <div className="max-w-xs rounded-lg px-4 py-2 bg-muted">
+                    <p className="text-sm">Thinking...</p>
+                </div>
+              </div>
+            )}
           </div>
         </ScrollArea>
         <SheetFooter>
@@ -102,8 +125,9 @@ export function Chatbot() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               placeholder="e.g., 'Find a Python developer for Project X'"
+              disabled={isLoading}
             />
-            <Button onClick={handleSend}><Send className="h-4 w-4"/></Button>
+            <Button onClick={handleSend} disabled={isLoading}><Send className="h-4 w-4"/></Button>
           </div>
         </SheetFooter>
       </SheetContent>

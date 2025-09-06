@@ -15,7 +15,6 @@ export type Project = {
   requiredSkills: string[];
   deadline: string; // ISO date string
   priority: 'High' | 'Medium' | 'Low';
-  allocatedResources: Allocation[];
 };
 
 export type Allocation = {

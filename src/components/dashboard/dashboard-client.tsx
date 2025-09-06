@@ -1,23 +1,62 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { collection, query, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectsTable } from './projects-table';
 import { ResourcesTable } from './resources-table';
 import type { Project, Resource, Allocation } from '@/lib/types';
-import { Briefcase, Users, PlusCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Briefcase, Users } from 'lucide-react';
+import { AddProjectModal } from './add-project-modal';
+import { AddResourceModal } from './add-resource-modal';
 
-interface DashboardClientProps {
-  data: {
-    projects: Project[];
-    resources: Resource[];
-    allocations: Allocation[];
-  };
-}
+export function DashboardClient() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [allocations, setAllocations] = useState<Allocation[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export function DashboardClient({ data }: DashboardClientProps) {
-  const { projects, resources, allocations } = data;
+  useEffect(() => {
+    const qProjects = query(collection(db, "projects"));
+    const unsubscribeProjects = onSnapshot(qProjects, (querySnapshot) => {
+      const projectsData: Project[] = [];
+      querySnapshot.forEach((doc) => {
+        projectsData.push({ id: doc.id, ...doc.data() } as Project);
+      });
+      setProjects(projectsData);
+      setLoading(false);
+    });
+
+    const qResources = query(collection(db, "resources"));
+    const unsubscribeResources = onSnapshot(qResources, (querySnapshot) => {
+      const resourcesData: Resource[] = [];
+      querySnapshot.forEach((doc) => {
+        resourcesData.push({ id: doc.id, ...doc.data() } as Resource);
+      });
+      setResources(resourcesData);
+    });
+
+    const qAllocations = query(collection(db, "allocations"));
+    const unsubscribeAllocations = onSnapshot(qAllocations, (querySnapshot) => {
+        const allocationsData: Allocation[] = [];
+        querySnapshot.forEach((doc) => {
+            allocationsData.push({ ...doc.data() } as Allocation);
+        });
+        setAllocations(allocationsData);
+    });
+
+    return () => {
+      unsubscribeProjects();
+      unsubscribeResources();
+      unsubscribeAllocations();
+    };
+  }, []);
+  
+  if (loading) {
+    // You can return a loading spinner here
+    return <p>Loading...</p>;
+  }
 
   return (
     <>
@@ -29,12 +68,8 @@ export function DashboardClient({ data }: DashboardClientProps) {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Project
-          </Button>
-          <Button variant="secondary">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Resource
-          </Button>
+          <AddProjectModal />
+          <AddResourceModal />
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">

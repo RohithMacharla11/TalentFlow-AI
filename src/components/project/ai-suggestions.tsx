@@ -8,6 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Target, Check, Zap } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface AiSuggestionsProps {
     project: Project;
@@ -17,6 +20,7 @@ interface AiSuggestionsProps {
 export function AiSuggestions({ project, allResources }: AiSuggestionsProps) {
     const [suggestions, setSuggestions] = useState<IntelligentResourceMatchingOutput | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const { toast } = useToast();
 
     useEffect(() => {
         const fetchSuggestions = async () => {
@@ -43,8 +47,32 @@ export function AiSuggestions({ project, allResources }: AiSuggestionsProps) {
             }
         };
 
-        fetchSuggestions();
+        if (project && allResources.length > 0) {
+           fetchSuggestions();
+        }
     }, [project, allResources]);
+
+    const handleAssign = async (resourceId: string, matchPercentage: number) => {
+        try {
+            await addDoc(collection(db, 'allocations'), {
+                projectId: project.id,
+                resourceId,
+                match: matchPercentage,
+                status: matchPercentage > 90 ? 'matched' : matchPercentage > 60 ? 'partial' : 'conflict',
+            });
+            toast({
+                title: "Resource Assigned",
+                description: `Successfully assigned resource to ${project.name}.`,
+            });
+        } catch (error) {
+            console.error("Error assigning resource: ", error);
+            toast({
+                title: "Error",
+                description: "Failed to assign resource. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
 
     const getResourceById = (id: string) => allResources.find(r => r.id === id);
 
@@ -91,7 +119,7 @@ export function AiSuggestions({ project, allResources }: AiSuggestionsProps) {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                         <Button size="sm">
+                                         <Button size="sm" onClick={() => handleAssign(rec.resourceId, rec.matchPercentage)}>
                                             <Check className="mr-2 h-4 w-4"/>
                                             Assign
                                         </Button>

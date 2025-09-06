@@ -1,8 +1,12 @@
-import { projects, resources, allocations } from "@/lib/data";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Project, Resource, Allocation } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { notFound } from "next/navigation";
 import {
     Tabs,
@@ -13,21 +17,57 @@ import {
 import { AiSuggestions } from "@/components/project/ai-suggestions";
 
 export default function ProjectDetailPage({ params }: { params: { id: string } }) {
-    const project = projects.find(p => p.id === params.id);
+    const [project, setProject] = useState<Project | null>(null);
+    const [allocatedResources, setAllocatedResources] = useState<(Allocation & { resource?: Resource })[]>([]);
+    const [allResources, setAllResources] = useState<Resource[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    if (!project) {
-        notFound();
+    useEffect(() => {
+        const fetchProject = async () => {
+            const projectDoc = await getDoc(doc(db, "projects", params.id));
+            if (projectDoc.exists()) {
+                setProject({ id: projectDoc.id, ...projectDoc.data() } as Project);
+            } else {
+                notFound();
+            }
+            setLoading(false);
+        };
+        fetchProject();
+
+        const qResources = query(collection(db, "resources"));
+        const unsubscribeResources = onSnapshot(qResources, (snapshot) => {
+            const resourcesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Resource));
+            setAllResources(resourcesData);
+        });
+
+        return () => unsubscribeResources();
+
+    }, [params.id]);
+
+    useEffect(() => {
+        if (!project) return;
+        
+        const qAllocations = query(collection(db, "allocations"), where("projectId", "==", project.id));
+        const unsubscribeAllocations = onSnapshot(qAllocations, (snapshot) => {
+             const allocationsData = snapshot.docs.map(doc => doc.data() as Allocation);
+             const populatedAllocations = allocationsData.map(alloc => {
+                const resource = allResources.find(r => r.id === alloc.resourceId);
+                return { ...alloc, resource };
+             });
+             setAllocatedResources(populatedAllocations);
+        });
+
+        return () => unsubscribeAllocations();
+
+    }, [project, allResources]);
+
+    if (loading) {
+        return <p>Loading...</p>;
     }
 
-    const getResourceById = (id: string) => resources.find(r => r.id === id);
-
-    const allocatedResources = allocations
-        .filter(a => a.projectId === project.id)
-        .map(a => ({
-            ...a,
-            resource: getResourceById(a.resourceId)
-        }))
-        .filter(a => a.resource);
+    if (!project) {
+        return notFound();
+    }
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -102,7 +142,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                             </Card>
                         </TabsContent>
                          <TabsContent value="suggestions">
-                             <AiSuggestions project={project} allResources={resources} />
+                             <AiSuggestions project={project} allResources={allResources} />
                          </TabsContent>
                          <TabsContent value="logs">
                              <Card>
