@@ -110,7 +110,7 @@ export function ProjectsTable({ projects, resources, allocations }: ProjectsTabl
             </TableCell>
           </TableRow>
         ))}
-      </Body>
+      </TableBody>
     </Table>
   );
 }

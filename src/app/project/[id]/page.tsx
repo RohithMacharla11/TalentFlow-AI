@@ -15,6 +15,8 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 import { AiSuggestions } from "@/components/project/ai-suggestions";
+import { Button } from '@/components/ui/button';
+import { Pen } from 'lucide-react';
 
 export default function ProjectDetailPage({ params }: { params: { id:string } }) {
     const [project, setProject] = useState<Project | null>(null);
@@ -76,18 +78,26 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                     <h1 className="text-3xl font-bold tracking-tight font-headline">{project.name}</h1>
                     <p className="text-muted-foreground">{project.description}</p>
                 </div>
-                <Badge variant={project.priority === 'High' ? 'destructive' : project.priority === 'Medium' ? 'secondary' : 'outline'}>
-                    {project.priority} Priority
-                </Badge>
+                <div className="flex items-center gap-2">
+                    <Badge variant={project.priority === 'High' ? 'destructive' : project.priority === 'Medium' ? 'secondary' : 'outline'}>
+                        {project.priority} Priority
+                    </Badge>
+                     <Button variant="outline" size="icon">
+                        <Pen className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-                <Card>
+                 <Card className="md:col-span-1">
                     <CardHeader>
                         <CardTitle>Project Details</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2">
-                        <p><strong>Deadline:</strong> {new Date(project.deadline).toLocaleDateString()}</p>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <strong>Deadline:</strong>
+                            <p>{new Date(project.deadline).toLocaleDateString()}</p>
+                        </div>
                         <div>
                             <strong>Required Skills:</strong>
                             <div className="flex flex-wrap gap-1 mt-1">
@@ -96,32 +106,43 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                                 ))}
                             </div>
                         </div>
+                        
                     </CardContent>
                 </Card>
                 <div className="md:col-span-2">
                      <Tabs defaultValue="allocated">
-                        <TabsList className="grid w-full grid-cols-4">
+                        <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="allocated">Allocated Resources</TabsTrigger>
                             <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
-                            <TabsTrigger value="logs">Logs</TabsTrigger>
-                            <TabsTrigger value="overview">Overview</TabsTrigger>
+                            <TabsTrigger value="logs">Audit Logs</TabsTrigger>
                         </TabsList>
                         <TabsContent value="allocated">
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Allocated Resources</CardTitle>
+                                    <CardDescription>
+                                        Drag and drop resources to re-assign or un-assign them.
+                                    </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     {allocatedResources.length > 0 ? (
                                         <div className="space-y-4">
-                                            {allocatedResources.map(({ resource, match, status }).map((resource) =>
-                resource ? (
-                  <Avatar key={resource.id} className="border-2 border-card">
-                    <AvatarImage src={resource.avatar} alt={resource.name} />
-                    <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                ) : null
-              )}
+                                            {allocatedResources.map(({ resource, match, status }) => (
+                                               resource && (
+                                                <div key={resource.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-10 w-10 border">
+                                                          <AvatarImage src={resource.avatar} alt={resource.name} />
+                                                          <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold">{resource.name}</p>
+                                                            <p className="text-sm text-muted-foreground">{resource.role}</p>
+                                                        </div>
+                                                    </div>
+                                                    <Badge variant="outline">{match}% Match</Badge>
+                                                </div>
+                                               )
                                             ))}
                                         </div>
                                     ) : (
@@ -136,21 +157,11 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                          <TabsContent value="logs">
                              <Card>
                                  <CardHeader>
-                                     <CardTitle>Explainability Logs</CardTitle>
-                                     <CardDescription>Reasoning behind each allocation.</CardDescription>
+                                     <CardTitle>Audit Logs</CardTitle>
+                                     <CardDescription>History of allocations for this project.</CardDescription>
                                  </Header>
                                  <CardContent>
-                                     <p className="text-muted-foreground">View detailed allocation rationale from the main dashboard by clicking the "Why?" button on a project row.</p>
-                                 </CardContent>
-                             </Card>
-                         </TabsContent>
-                         <TabsContent value="overview">
-                             <Card>
-                                 <CardHeader>
-                                     <CardTitle>Project Overview</CardTitle>
-                                 </Header>
-                                 <CardContent>
-                                     <p className="text-muted-foreground">Project overview will be implemented here.</p>
+                                     <p className="text-muted-foreground">Audit trail will be implemented here.</p>
                                  </CardContent>
                              </Card>
                          </TabsContent>

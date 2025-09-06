@@ -15,6 +15,7 @@ import {
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, Calendar, Users, Briefcase, Bot } from 'lucide-react';
+import { Chatbot } from '../chatbot';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -58,6 +59,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <SidebarInset className="flex flex-col">
           <Header />
           <main className="flex-1 overflow-y-auto">{children}</main>
+          <Chatbot />
         </SidebarInset>
       </div>
     </SidebarProvider>

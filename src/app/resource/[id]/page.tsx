@@ -14,6 +14,9 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs"
+import { Button } from '@/components/ui/button';
+import { Pen } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ResourceDetailPage({ params }: { params: { id: string } }) {
     const [resource, setResource] = useState<Resource | null>(null);
@@ -68,6 +71,11 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
         notFound();
     }
 
+    const totalAvailability = 40;
+    const allocatedHours = resourceAllocations.length * 8; // Simplified: 8h per project
+    const remainingAvailability = Math.max(0, resource.availability - allocatedHours);
+
+
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
             <div className="flex items-start justify-between">
@@ -82,6 +90,9 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                         <p className="text-muted-foreground">{resource.email}</p>
                     </div>
                 </div>
+                 <Button variant="outline" size="icon">
+                    <Pen className="h-4 w-4" />
+                </Button>
             </div>
 
             <Tabs defaultValue="overview">
@@ -101,16 +112,16 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                                 <div className="space-y-4">
                                     {resourceAllocations.map(({ project, match, status }) => (
                                         project && (
-                                            <div key={project.id} className="flex items-center justify-between">
+                                            <Link href={`/project/${project.id}`} key={project.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
                                                 <div>
                                                     <p className="font-semibold">{project.name}</p>
                                                     <p className="text-sm text-muted-foreground">Due: {new Date(project.deadline).toLocaleDateString()}</p>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-semibold">{match}% Match</p>
-                                                    <p className={`text-sm ${status === 'matched' ? 'text-green-500' : status === 'partial' ? 'text-yellow-500' : 'text-red-500'}`}>{status}</p>
+                                                    <p className={`text-sm font-semibold capitalize ${status === 'matched' ? 'text-green-500' : status === 'partial' ? 'text-yellow-500' : 'text-red-500'}`}>{status}</p>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         )
                                     ))}
                                 </div>
@@ -136,13 +147,20 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                     <Card>
                         <CardHeader>
                             <CardTitle>Availability</CardTitle>
+                            <CardDescription>Resource's weekly capacity and current commitment.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                <Progress value={(resource.availability / 40) * 100} className="h-3" />
-                                <span className="font-semibold text-lg">{resource.availability}h / 40h</span>
+                            <div className="space-y-2">
+                                <div className="flex justify-between font-mono text-sm">
+                                    <span>{allocatedHours}h Allocated</span>
+                                    <span>{remainingAvailability}h Free</span>
+                                </div>
+                                <Progress value={(allocatedHours / totalAvailability) * 100} className="h-3" />
+                                <div className="text-xs text-muted-foreground text-center">
+                                    {resource.availability}h / {totalAvailability}h Total Capacity
+                                </div>
                             </div>
-                            <p className="text-muted-foreground">Availability calendar will be implemented here.</p>
+                            <p className="text-muted-foreground pt-4">A more detailed availability calendar will be implemented here.</p>
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -153,7 +171,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                             <CardDescription>Projects this resource might be a good fit for.</CardDescription>
                         </Header>
                         <CardContent>
-                             <p className="text-muted-foreground">AI recommendations will be implemented here.</p>
+                             <p className="text-muted-foreground">AI recommendations for suitable projects will be implemented here.</p>
                         </CardContent>
                     </Card>
                 </TabsContent>
