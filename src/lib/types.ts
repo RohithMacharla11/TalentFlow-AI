@@ -1,3 +1,6 @@
+
+import type { Timestamp } from 'firebase/firestore';
+
 export type Resource = {
   id: string;
   name: string;
@@ -29,4 +32,5 @@ export type Allocation = {
   match: number; // 0-100
   status: 'matched' | 'partial' | 'conflict';
   reasoning: string;
+  createdAt?: Timestamp;
 };

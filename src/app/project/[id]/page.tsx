@@ -16,9 +16,10 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Pen, Sparkles, Zap, ArrowLeft } from 'lucide-react';
+import { Pen, Sparkles, Zap, ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import { ProjectAiSuggestions } from '@/components/project/project-ai-suggestions';
 import { useToast } from '@/hooks/use-toast';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function ProjectDetailPage() {
     const params = useParams();
@@ -61,7 +62,11 @@ export default function ProjectDetailPage() {
 
         const qAllocations = query(collection(db, "allocations"), where("projectId", "==", project.id));
         const unsubscribeAllocations = onSnapshot(qAllocations, (snapshot) => {
-            const allocationsData = snapshot.docs.map(doc => doc.data() as Allocation);
+            const allocationsData = snapshot.docs.map(doc => {
+                 const data = doc.data();
+                 return { id: doc.id, ...data } as Allocation;
+            });
+            
             const populatedAllocations = allocationsData.map(alloc => {
                 const resource = allResources.find(r => r.id === alloc.resourceId);
                 return { ...alloc, resource };
@@ -192,7 +197,7 @@ export default function ProjectDetailPage() {
                                     <CardDescription>
                                         Use AI to find and assign the best resources for this project.
                                     </CardDescription>
-                                </CardHeader>
+                                </Header>
                                 <CardContent className="text-center">
                                     <Button onClick={handleAiAssignClick} disabled={allResources.length === 0}>
                                         <Zap className="mr-2 h-4 w-4" /> AI Assign Resources
@@ -216,9 +221,37 @@ export default function ProjectDetailPage() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-muted-foreground">
-                                        A detailed audit trail will be implemented here. Use the "Why?" button on the dashboard for allocation rationale.
-                                    </p>
+                                     {allocatedResources.length > 0 ? (
+                                        <div className="space-y-6">
+                                            {allocatedResources.map(({ resource, reasoning, match, createdAt }) => (
+                                                resource && (
+                                                    <div key={resource.id} className="flex items-start gap-4">
+                                                        <FileText className="h-5 w-5 text-muted-foreground mt-1" />
+                                                        <div className="flex-1">
+                                                            <p className="text-sm">
+                                                                <span className="font-semibold">{resource.name}</span>
+                                                                {' was assigned to this project.'}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {createdAt ? `${formatDistanceToNow(createdAt.toDate(), { addSuffix: true })}` : 'Recently'}
+                                                            </p>
+                                                            <div className="mt-2 p-3 bg-muted/50 rounded-md border text-sm">
+                                                                <p className="font-semibold flex items-center gap-2">
+                                                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                                                    Reasoning (Match: {match}%)
+                                                                </p>
+                                                                <p className="text-muted-foreground mt-1 italic">
+                                                                    "{reasoning}"
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground text-center py-4">No allocation history yet.</p>
+                                    )}
                                 </CardContent>
                             </Card>
                         </TabsContent>

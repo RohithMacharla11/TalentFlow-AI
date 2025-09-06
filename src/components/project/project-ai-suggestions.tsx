@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import { Target, Zap, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
@@ -93,6 +93,7 @@ export function ProjectAiSuggestions({ project, allResources, open, onOpenChange
                     match,
                     reasoning,
                     status: match > 90 ? 'matched' : match > 60 ? 'partial' : 'conflict',
+                    createdAt: serverTimestamp(),
                 });
             });
 
