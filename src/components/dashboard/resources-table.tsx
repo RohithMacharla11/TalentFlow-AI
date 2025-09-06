@@ -14,12 +14,14 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import type { Resource } from '@/lib/types';
 import { Button } from '../ui/button';
+import { Skeleton } from '../ui/skeleton';
 
 interface ResourcesTableProps {
   resources: Resource[];
+  loading: boolean;
 }
 
-export function ResourcesTable({ resources }: ResourcesTableProps) {
+export function ResourcesTable({ resources, loading }: ResourcesTableProps) {
   const router = useRouter();
 
   const handleRowClick = (resourceId: string) => {
@@ -38,7 +40,26 @@ export function ResourcesTable({ resources }: ResourcesTableProps) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {resources.map((resource) => (
+        {loading ? (
+           [...Array(5)].map((_, i) => (
+            <TableRow key={i}>
+                <TableCell>
+                    <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className='space-y-2'>
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-3 w-32" />
+                        </div>
+                    </div>
+                </TableCell>
+                <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
+            </TableRow>
+          ))
+        ) : (
+        resources.map((resource) => (
           <TableRow 
             key={resource.id} 
             onClick={() => handleRowClick(resource.id)}
@@ -79,7 +100,8 @@ export function ResourcesTable({ resources }: ResourcesTableProps) {
                 <Button variant="outline" size="sm">Assign</Button>
             </TableCell>
           </TableRow>
-        ))}
+        ))
+        )}
       </TableBody>
     </Table>
   );

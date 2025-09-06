@@ -15,14 +15,16 @@ import { AllocationModal } from './allocation-modal';
 import type { Project, Resource, Allocation } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Skeleton } from '../ui/skeleton';
 
 interface ProjectsTableProps {
   projects: Project[];
   resources: Resource[];
   allocations: Allocation[];
+  loading: boolean;
 }
 
-export function ProjectsTable({ projects, resources, allocations }: ProjectsTableProps) {
+export function ProjectsTable({ projects, resources, allocations, loading }: ProjectsTableProps) {
   const router = useRouter();
   const getResourceById = (id: string) => resources.find((r) => r.id === id);
 
@@ -56,7 +58,19 @@ export function ProjectsTable({ projects, resources, allocations }: ProjectsTabl
         </TableRow>
       </TableHeader>
       <TableBody>
-        {projects.map((project) => (
+        {loading ? (
+          [...Array(5)].map((_, i) => (
+            <TableRow key={i}>
+                <TableCell><Skeleton className="h-5 w-3/4" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                <TableCell><Skeleton className="h-8 w-24" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>
+            </TableRow>
+          ))
+        ) : (
+        projects.map((project) => (
           <TableRow 
             key={project.id} 
             onClick={() => handleRowClick(project.id)}
@@ -109,7 +123,8 @@ export function ProjectsTable({ projects, resources, allocations }: ProjectsTabl
               <AllocationModal project={project} allocations={allocations.filter(a => a.projectId === project.id)} resources={resources}/>
             </TableCell>
           </TableRow>
-        ))}
+        ))
+        )}
       </TableBody>
     </Table>
   );

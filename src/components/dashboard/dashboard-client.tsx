@@ -53,11 +53,6 @@ export function DashboardClient() {
     };
   }, []);
   
-  if (loading) {
-    // You can return a loading spinner here
-    return <p>Loading...</p>;
-  }
-
   return (
     <>
       <div className="flex items-center justify-between space-y-2">
@@ -79,7 +74,7 @@ export function DashboardClient() {
             <Briefcase className="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <ProjectsTable projects={projects} resources={resources} allocations={allocations} />
+            <ProjectsTable projects={projects} resources={resources} allocations={allocations} loading={loading} />
           </CardContent>
         </Card>
         <Card className="col-span-1 lg:col-span-2">
@@ -88,7 +83,7 @@ export function DashboardClient() {
             <Users className="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <ResourcesTable resources={resources} />
+            <ResourcesTable resources={resources} loading={loading} />
           </CardContent>
         </Card>
       </div>
