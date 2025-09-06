@@ -92,7 +92,7 @@ export default function ProjectDetailPage() {
     };
 
     if (loading) {
-        return <p>Loading...</p>;
+        return <div className="flex-1 space-y-4 p-4 md:p-8 pt-6"><p>Loading...</p></div>;
     }
 
     if (!project) {
@@ -197,7 +197,7 @@ export default function ProjectDetailPage() {
                                     <CardDescription>
                                         Use AI to find and assign the best resources for this project.
                                     </CardDescription>
-                                </Header>
+                                </CardHeader>
                                 <CardContent className="text-center">
                                     <Button onClick={handleAiAssignClick} disabled={allResources.length === 0}>
                                         <Zap className="mr-2 h-4 w-4" /> AI Assign Resources
