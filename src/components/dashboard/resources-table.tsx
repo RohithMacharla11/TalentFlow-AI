@@ -73,7 +73,6 @@ function ResourceRow({ resource, projects, allocations }: { resource: Resource }
             style={style}
             {...listeners}
             {...attributes}
-            key={resource.id}
             onClick={() => handleRowClick(resource.id)}
             className={cn("cursor-grab", { "opacity-50 z-50 bg-card shadow-lg": isDragging })}
         >
