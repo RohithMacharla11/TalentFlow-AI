@@ -32,7 +32,7 @@ export default function ResourceDetailPage() {
         const fetchResource = async () => {
             const resourceDoc = await getDoc(doc(db, "resources", resourceId));
             if (resourceDoc.exists()) {
-                setResource({ id: resourceDoc.id, ...doc.data() } as Resource);
+                setResource({ id: resourceDoc.id, ...resourceDoc.data() } as Resource);
             } else {
                 notFound();
             }
