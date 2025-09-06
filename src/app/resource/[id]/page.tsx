@@ -33,6 +33,7 @@ export default function ResourceDetailPage() {
 
     useEffect(() => {
         if (!resourceId) return;
+        
         const fetchResource = async () => {
             const resourceDoc = await getDoc(doc(db, "resources", resourceId));
             if (resourceDoc.exists()) {
@@ -53,7 +54,6 @@ export default function ResourceDetailPage() {
         return () => {
             unsubscribeProjects();
         };
-
     }, [resourceId]);
 
     useEffect(() => {
@@ -86,7 +86,6 @@ export default function ResourceDetailPage() {
         setIsSuggestionModalOpen(true);
     };
 
-
     if (loading) {
         return <div className="flex-1 space-y-4 p-4 md:p-8 pt-6"><p>Loading...</p></div>;
     }
@@ -98,7 +97,6 @@ export default function ResourceDetailPage() {
     const totalAvailability = 40;
     const allocatedHours = resourceAllocations.reduce((acc, curr) => acc + (curr.project ? 8 : 0), 0); // Simplified: 8h per project
     const remainingAvailability = Math.max(0, resource.availability - allocatedHours);
-
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
