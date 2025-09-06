@@ -43,3 +43,12 @@ export type Allocation = {
   reasoning: string;
   createdAt?: Timestamp;
 };
+
+export type ProjectRequest = {
+    id: string;
+    resourceId: string;
+    projectId: string;
+    status: 'pending' | 'approved' | 'rejected';
+    requestedAt: Timestamp;
+    message?: string;
+}

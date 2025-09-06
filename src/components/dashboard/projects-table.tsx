@@ -1,3 +1,4 @@
+
 'use client';
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,20 +13,30 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { AllocationModal } from './allocation-modal';
-import type { Project, Resource, Allocation } from '@/lib/types';
+import type { Project, Resource, Allocation, ProjectRequest } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Skeleton } from '../ui/skeleton';
+import { Button } from '../ui/button';
+import { useAuth } from '@/contexts/auth-context';
+import { createProjectRequest } from '@/services/firestore-service';
+import { useToast } from '@/hooks/use-toast';
+import { Send } from 'lucide-react';
 
 interface ProjectsTableProps {
   projects: Project[];
   resources: Resource[];
   allocations: Allocation[];
   loading: boolean;
+  requests?: ProjectRequest[];
+  currentUserResource?: Resource | null;
 }
 
-export function ProjectsTable({ projects, resources, allocations, loading }: ProjectsTableProps) {
+export function ProjectsTable({ projects, resources, allocations, loading, requests, currentUserResource }: ProjectsTableProps) {
   const router = useRouter();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
   const getResourceById = (id: string) => resources.find((r) => r.id === id);
 
   const getStatusColor = (status: Allocation['status']) => {
@@ -44,6 +55,24 @@ export function ProjectsTable({ projects, resources, allocations, loading }: Pro
   const handleRowClick = (projectId: string) => {
     router.push(`/project/${projectId}`);
   };
+
+  const handleRequestJoin = async (e: React.MouseEvent, projectId: string) => {
+    e.stopPropagation();
+    if (!currentUserResource) {
+        toast({ title: "Error", description: "Could not identify your resource profile.", variant: "destructive"});
+        return;
+    }
+    try {
+        await createProjectRequest({
+            projectId: projectId,
+            resourceId: currentUserResource.id,
+        });
+        toast({ title: "Request Sent", description: "Your request to join the project has been sent to the manager."});
+    } catch (error) {
+        console.error(error);
+        toast({ title: "Error", description: "Failed to send your request.", variant: "destructive"});
+    }
+  }
 
   return (
     <Table>
@@ -70,7 +99,9 @@ export function ProjectsTable({ projects, resources, allocations, loading }: Pro
             </TableRow>
           ))
         ) : (
-        projects.map((project) => (
+        projects.map((project) => {
+            const isRequested = requests?.some(r => r.projectId === project.id && r.resourceId === currentUserResource?.id && r.status === 'pending');
+          return (
           <TableRow 
             key={project.id} 
             onClick={() => handleRowClick(project.id)}
@@ -120,10 +151,22 @@ export function ProjectsTable({ projects, resources, allocations, loading }: Pro
               </div>
             </TableCell>
             <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-              <AllocationModal project={project} allocations={allocations.filter(a => a.projectId === project.id)} resources={resources}/>
+                {user?.role === 'Team Member' ? (
+                     <Button 
+                        variant={isRequested ? "secondary" : "outline"} 
+                        size="sm"
+                        onClick={(e) => handleRequestJoin(e, project.id)}
+                        disabled={isRequested}
+                    >
+                      <Send className="mr-2 h-4 w-4" />
+                      {isRequested ? 'Requested' : 'Request to Join'}
+                    </Button>
+                ) : (
+                    <AllocationModal project={project} allocations={allocations.filter(a => a.projectId === project.id)} resources={resources}/>
+                )}
             </TableCell>
           </TableRow>
-        ))
+        )})
         )}
       </TableBody>
     </Table>
