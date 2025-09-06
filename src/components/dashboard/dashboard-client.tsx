@@ -14,6 +14,7 @@ import { AddResourceModal, ResourceFormValues } from './add-resource-modal';
 import { ImportCvModal } from './import-cv-modal';
 import { useAuth } from '@/contexts/auth-context';
 import { getResourceByEmail } from '@/services/firestore-service';
+import { Skeleton } from '../ui/skeleton';
 
 export function DashboardClient() {
   const { user } = useAuth();
@@ -23,18 +24,23 @@ export function DashboardClient() {
   const [requests, setRequests] = useState<ProjectRequest[]>([]);
   const [currentUserResource, setCurrentUserResource] = useState<Resource | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingResourceProfile, setLoadingResourceProfile] = useState(true);
   
   const [isAddResourceOpen, setIsAddResourceOpen] = useState(false);
   const [prefillData, setPrefillData] = useState<Partial<ResourceFormValues> | undefined>();
 
   useEffect(() => {
     const fetchAndSetCurrentUserResource = async (email: string) => {
+        setLoadingResourceProfile(true);
         const resourceProfile = await getResourceByEmail(email);
         setCurrentUserResource(resourceProfile);
+        setLoadingResourceProfile(false);
     };
 
     if (user?.role === 'Team Member' && user.email) {
         fetchAndSetCurrentUserResource(user.email);
+    } else {
+        setLoadingResourceProfile(false);
     }
   }, [user]);
 
@@ -88,7 +94,7 @@ export function DashboardClient() {
                     <CardDescription>Projects you are currently assigned to.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ProjectsTable projects={assignedProjects} resources={resources} allocations={allocations} loading={loading} />
+                    <ProjectsTable projects={assignedProjects} resources={resources} allocations={allocations} loading={loading || loadingResourceProfile} />
                 </CardContent>
                 </Card>
                 <Card className="col-span-1 lg:col-span-2">
@@ -97,14 +103,22 @@ export function DashboardClient() {
                     <CardDescription>Projects you can request to join.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ProjectsTable 
-                        projects={projects.filter(p => !assignedProjectIds.includes(p.id))} 
-                        resources={resources} 
-                        allocations={allocations} 
-                        loading={loading}
-                        requests={requests}
-                        currentUserResource={currentUserResource}
-                    />
+                    {loading || loadingResourceProfile ? (
+                        <div className="space-y-2">
+                            <Skeleton className="h-12 w-full" />
+                            <Skeleton className="h-12 w-full" />
+                            <Skeleton className="h-12 w-full" />
+                        </div>
+                    ) : (
+                        <ProjectsTable 
+                            projects={projects.filter(p => !assignedProjectIds.includes(p.id))} 
+                            resources={resources} 
+                            allocations={allocations} 
+                            loading={false}
+                            requests={requests}
+                            currentUserResource={currentUserResource}
+                        />
+                    )}
                 </CardContent>
                 </Card>
             </div>
