@@ -76,8 +76,8 @@ export default function GanttPage() {
         allocations: projectAllocations,
       };
     })
-    .filter(Boolean)
-    .sort((a, b) => a!.range[0] - b!.range[0]);
+    .filter((p): p is NonNullable<typeof p> => p !== null)
+    .sort((a, b) => a.range[0] - b.range[0]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -125,9 +125,8 @@ export default function GanttPage() {
                   top: 20, right: 30, left: 100, bottom: 5,
                 }}
                 barCategoryGap="30%"
-                stackOffset="expand" // This helps position the bars correctly
               >
-                <XAxis type="number" hide />
+                <XAxis type="number" domain={[0, 365]} tickFormatter={(val) => format(new Date(new Date().getFullYear(), 0, val), 'MMM')} />
                 <YAxis dataKey="name" type="category" width={150} tickLine={false} axisLine={false} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                 <Legend />
@@ -142,7 +141,7 @@ export default function GanttPage() {
                   dataKey="duration"
                   stackId="a"
                   name="Duration (days)"
-                  fill="hsl(var(--primary) / 0.6)"
+                  fill="hsl(var(--primary) / 0.8)"
                 />
               </BarChart>
             </ResponsiveContainer>
