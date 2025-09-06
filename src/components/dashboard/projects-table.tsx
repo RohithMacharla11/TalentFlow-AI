@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { AllocationModal } from './allocation-modal';
 import type { Project, Resource, Allocation } from '@/lib/types';
 import { cn } from '@/lib/utils';

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/tabs"
 import { AiSuggestions } from "@/components/project/ai-suggestions";
 
-export default function ProjectDetailPage({ params }: { params: { id: string } }) {
+export default function ProjectDetailPage({ params }: { params: { id:string } }) {
     const [project, setProject] = useState<Project | null>(null);
     const [allocatedResources, setAllocatedResources] = useState<(Allocation & { resource?: Resource })[]>([]);
     const [allResources, setAllResources] = useState<Resource[]>([]);
@@ -151,7 +151,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                                      <CardDescription>Reasoning behind each allocation.</CardDescription>
                                  </CardHeader>
                                  <CardContent>
-                                     <p className="text-muted-foreground">Allocation logs will be implemented here.</p>
+                                     <p className="text-muted-foreground">View detailed allocation rationale from the main dashboard by clicking the "Why?" button on a project row.</p>
                                  </CardContent>
                              </Card>
                          </TabsContent>
@@ -159,7 +159,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                              <Card>
                                  <CardHeader>
                                      <CardTitle>Project Overview</CardTitle>
-                                 </CardHeader>
+                                 </Header>
                                  <CardContent>
                                      <p className="text-muted-foreground">Project overview will be implemented here.</p>
                                  </CardContent>
