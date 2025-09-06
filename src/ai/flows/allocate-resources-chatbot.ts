@@ -122,6 +122,8 @@ const allocateResourcesPrompt = ai.definePrompt({
 
 When asked about available or remaining resources, you must first get all resources and all allocations, then determine which resources are not currently allocated.
 
+When an allocation is possible, you must first ask the user for confirmation before using the 'allocateResource' tool. Propose the allocation and wait for the user to agree.
+
 Request: {{{request}}}
 
 Provide a helpful summary to the user based on the tool output.`,
