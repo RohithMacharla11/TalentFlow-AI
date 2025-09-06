@@ -69,6 +69,7 @@ function ResourceRow({ resource, projects, allocations }: { resource: Resource }
     return (
       <>
         <TableRow
+            key={resource.id}
             ref={setNodeRef}
             style={style}
             {...listeners}
