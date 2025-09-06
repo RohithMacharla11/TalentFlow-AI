@@ -1,6 +1,6 @@
 # TalentFlow AI: Intelligent Resource Allocation Platform
 
-TalentFlow AI is a sophisticated, AI-driven web application designed to streamline and optimize the process of resource allocation within an organization. It moves beyond simple manual assignments by leveraging the power of generative AI to make intelligent, data-driven recommendations for matching the right people to the right projects.
+As a passionate developer, I created TalentFlow AI to explore the intersection of web development and artificial intelligence. This sophisticated, AI-driven web application is designed to streamline and optimize the process of resource allocation within an organization. It moves beyond simple manual assignments by leveraging the power of generative AI to make intelligent, data-driven recommendations for matching the right people to the right projects.
 
 This platform serves as a central hub for project managers, administrators, and team members, providing tools for project and resource management, insightful analytics, and a collaborative environment to ensure that every project is staffed for success.
 
@@ -28,7 +28,7 @@ This project is built with a modern, robust, and scalable technology stack, desi
 -   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 -   **Charting:** [Recharts](https://recharts.org/)
 -   **Icons:** [Lucide React](https://lucide.dev/)
--   **Deployment:** [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)
+-   **Deployment:** [Firebase App Hosting](https://firebase.google.com/docs/app-hosting) & [Vercel](https://vercel.com)
 
 ## 🚀 Getting Started
 
@@ -94,6 +94,55 @@ For the application to work correctly, you need to create the following collecti
 --   `requests`: Stores requests from team members to join projects.
 
 After these steps, your application will be connected to your own Firebase backend. You will need to sign up as a new user in your own application to start adding projects and resources.
+
+## 🌐 Deploying to Vercel for Free
+
+You can deploy your own version of this application to Vercel for free.
+
+### 1. Push to a Git Repository
+
+First, make sure your project code is in a Git repository (e.g., on GitHub, GitLab, or Bitbucket). Vercel uses this to deploy your application.
+
+### 2. Sign Up for Vercel
+
+Go to [vercel.com](https://vercel.com) and sign up for a free account. It's easiest to sign up using your Git provider (e.g., "Continue with GitHub").
+
+### 3. Import Your Project
+
+-   From your Vercel dashboard, click **"Add New... > Project"**.
+-   Select the Git repository for this project.
+-   Vercel will automatically detect that it's a Next.js project and configure the build settings for you. You don't need to change anything here.
+
+### 4. Configure Environment Variables
+
+This is the most important step. Vercel needs access to your Firebase project keys to connect to the database. You'll add these as Environment Variables.
+
+-   In the "Configure Project" screen, expand the **Environment Variables** section.
+-   The code in `src/lib/firebase.ts` expects specific variable names. You need to create an environment variable for each key in your `firebaseConfig` object.
+-   **Crucially, you must prefix each variable name with `NEXT_PUBLIC_`** for Next.js to make it available in the browser.
+
+Add the following variables, copying the values from your `firebaseConfig` object:
+
+| Name                               | Value                 |
+| ---------------------------------- | --------------------- |
+| `NEXT_PUBLIC_FIREBASE_API_KEY`     | `YOUR_API_KEY`        |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | `YOUR_AUTH_DOMAIN`    |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`  | `YOUR_PROJECT_ID`     |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`| `YOUR_STORAGE_BUCKET` |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | `YOUR_MESSAGING_SENDER_ID` |
+| `NEXT_PUBLIC_FIREBASE_APP_ID`      | `YOUR_APP_ID`         |
+
+You will also need to provide your **Google AI API Key** for the generative AI features to work.
+
+| Name                | Value                 |
+| ------------------- | --------------------- |
+| `GEMINI_API_KEY`    | `YOUR_GEMINI_API_KEY` |
+
+
+### 5. Deploy
+
+Click the **"Deploy"** button. Vercel will build and deploy your application. Once it's done, you'll be given a public URL where you can access your live project.
+
 
 ## 🔮 Future Scope & Potential Enhancements
 
