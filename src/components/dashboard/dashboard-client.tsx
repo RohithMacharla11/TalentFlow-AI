@@ -35,6 +35,8 @@ export function DashboardClient() {
   // State for AI suggestions modal
   const [suggestionModalOpen, setSuggestionModalOpen] = useState(false);
   const [selectedResourceForSuggestion, setSelectedResourceForSuggestion] = useState<Resource | null>(null);
+  const [targetProjectForSuggestion, setTargetProjectForSuggestion] = useState<Project | null>(null);
+
 
   useEffect(() => {
     if (user?.role === 'Team Member' && user.email) {
@@ -103,11 +105,12 @@ export function DashboardClient() {
         }
 
         toast({
-            title: 'Assigning Resource',
-            description: `You are assigning ${resource.name} to ${project.name}. Opening AI suggestions...`,
+            title: 'Analyzing Fit...',
+            description: `Checking suitability of ${resource.name} for ${project.name}.`,
         });
 
         setSelectedResourceForSuggestion(resource);
+        setTargetProjectForSuggestion(project);
         setSuggestionModalOpen(true);
     }
   };
@@ -244,7 +247,13 @@ export function DashboardClient() {
               resource={selectedResourceForSuggestion}
               allProjects={projects}
               open={suggestionModalOpen}
-              onOpenChange={setSuggestionModalOpen}
+              onOpenChange={(isOpen) => {
+                setSuggestionModalOpen(isOpen);
+                if (!isOpen) {
+                    setTargetProjectForSuggestion(null);
+                }
+              }}
+              targetProject={targetProjectForSuggestion}
           />
       )}
     </DndContext>

@@ -26,9 +26,10 @@ interface ResourceAiSuggestionsProps {
     allProjects: Project[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    targetProject?: Project | null;
 }
 
-export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChange }: ResourceAiSuggestionsProps) {
+export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChange, targetProject }: ResourceAiSuggestionsProps) {
     const [suggestions, setSuggestions] = useState<IntelligentProjectMatchingOutput | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
@@ -38,15 +39,19 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
      useEffect(() => {
         if (open) {
             handleFetchSuggestions();
+            if (targetProject) {
+                setSelectedProjects([targetProject.id]);
+            }
         } else {
             setSuggestions(null);
             setSelectedProjects([]);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open]);
+    }, [open, targetProject]);
 
     const handleFetchSuggestions = async () => {
-        if (allProjects.length === 0) {
+        const projectsToEvaluate = targetProject ? [targetProject] : allProjects;
+        if (projectsToEvaluate.length === 0) {
             return;
         }
 
@@ -60,7 +65,7 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
                     skills: resource.skills,
                     availability: resource.availability,
                 },
-                projectProfiles: allProjects.map(p => ({
+                projectProfiles: projectsToEvaluate.map(p => ({
                     id: p.id,
                     name: p.name,
                     requiredSkills: p.requiredSkills,
@@ -89,7 +94,7 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
             const allocationPromises = projectIds.map(projectId => {
                 const suggestion = suggestions?.projectAllocations.find(p => p.projectId === projectId);
                 const match = suggestion?.matchPercentage ?? 0;
-                const reasoning = suggestion?.reasoning ?? 'N/A';
+                const reasoning = suggestion?.reasoning ?? 'Manual assignment via drag-and-drop.';
                 return addDoc(collection(db, 'allocations'), {
                     projectId,
                     resourceId: resource.id,
@@ -144,7 +149,10 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
                 <DialogHeader>
                     <DialogTitle>AI Project Recommendations</DialogTitle>
                     <DialogDescription>
-                        Top project matches for {resource.name}, ranked by best fit. Select projects to assign.
+                        {targetProject 
+                            ? `Analysis for assigning ${resource.name} to ${targetProject.name}.`
+                            : `Top project matches for ${resource.name}, ranked by best fit. Select projects to assign.`
+                        }
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4 max-h-[60vh] overflow-y-auto pr-4">
@@ -188,13 +196,21 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
                         </div>
                     )}
                 </div>
-                <DialogFooter>
-                    <Button variant="secondary" onClick={handleAutoAssign} disabled={isAssigning || isLoading || !suggestions?.projectAllocations.length}>
-                        <Zap className="mr-2 h-4 w-4"/> Auto-Assign Best Fit
-                    </Button>
-                    <Button onClick={handleManualAssign} disabled={isAssigning || isLoading || selectedProjects.length === 0}>
-                        {isAssigning ? 'Assigning...' : `Assign to Selected (${selectedProjects.length})`}
-                    </Button>
+                <DialogFooter className="sm:justify-between gap-2">
+                    {targetProject ? (
+                         <Button onClick={handleManualAssign} disabled={isAssigning || isLoading || selectedProjects.length === 0}>
+                            {isAssigning ? 'Assigning...' : `Confirm Assignment to ${targetProject.name}`}
+                        </Button>
+                    ) : (
+                        <>
+                        <Button variant="secondary" onClick={handleAutoAssign} disabled={isAssigning || isLoading || !suggestions?.projectAllocations.length}>
+                            <Zap className="mr-2 h-4 w-4"/> Auto-Assign Best Fit
+                        </Button>
+                        <Button onClick={handleManualAssign} disabled={isAssigning || isLoading || selectedProjects.length === 0}>
+                            {isAssigning ? 'Assigning...' : `Assign to Selected (${selectedProjects.length})`}
+                        </Button>
+                        </>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
