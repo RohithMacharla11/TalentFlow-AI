@@ -57,7 +57,7 @@ export default function ResourceDetailPage() {
     }, [resourceId]);
 
     useEffect(() => {
-        if (!resource) return;
+        if (!resource || allProjects.length === 0) return;
 
         const qAllocations = query(collection(db, "allocations"), where("resourceId", "==", resource.id));
         const unsubscribeAllocations = onSnapshot(qAllocations, (snapshot) => {
@@ -88,7 +88,7 @@ export default function ResourceDetailPage() {
 
 
     if (loading) {
-        return <p>Loading...</p>;
+        return <div className="flex-1 space-y-4 p-4 md:p-8 pt-6"><p>Loading...</p></div>;
     }
 
     if (!resource) {
