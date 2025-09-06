@@ -42,7 +42,9 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
             setAllResources(resourcesData);
         });
 
-        return () => unsubscribeResources();
+        return () => {
+            unsubscribeResources();
+        };
 
     }, [params.id]);
 
@@ -59,8 +61,9 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
             setAllocatedResources(populatedAllocations);
         });
 
-        return () => unsubscribeAllocations();
-
+        return () => {
+            unsubscribeAllocations();
+        };
     }, [project, allResources]);
 
     if (loading) {
@@ -72,113 +75,111 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     }
 
     return (
-        <>
-            <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-                <div className="flex items-center justify-between space-y-2">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight font-headline">{project.name}</h1>
-                        <p className="text-muted-foreground">{project.description}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Badge variant={project.priority === 'High' ? 'destructive' : project.priority === 'Medium' ? 'secondary' : 'outline'}>
-                            {project.priority} Priority
-                        </Badge>
-                        <Button variant="outline" size="icon">
-                            <Pen className="h-4 w-4" />
-                        </Button>
-                    </div>
+        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <div className="flex items-center justify-between space-y-2">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight font-headline">{project.name}</h1>
+                    <p className="text-muted-foreground">{project.description}</p>
                 </div>
-
-                <div className="grid gap-4 md:grid-cols-3">
-                    <Card className="md:col-span-1">
-                        <CardHeader>
-                            <CardTitle>Project Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <strong>Deadline:</strong>
-                                <p>{new Date(project.deadline).toLocaleDateString()}</p>
-                            </div>
-                            <div>
-                                <strong>Required Skills:</strong>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                    {project.requiredSkills.map(skill => (
-                                        <Badge key={skill} variant="secondary">{skill}</Badge>
-                                    ))}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <div className="md:col-span-2">
-                        <Tabs defaultValue="allocated">
-                            <TabsList className="grid w-full grid-cols-3">
-                                <TabsTrigger value="allocated">Allocated Resources</TabsTrigger>
-                                <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
-                                <TabsTrigger value="logs">Audit Logs</TabsTrigger>
-                            </TabsList>
-
-                            <TabsContent value="allocated">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Allocated Resources</CardTitle>
-                                        <CardDescription>
-                                            The team currently assigned to this project.
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        {allocatedResources.length > 0 ? (
-                                            <div className="space-y-4">
-                                                {allocatedResources.map(({ resource, match }) => (
-                                                    resource && (
-                                                        <div key={resource.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
-                                                            <div className="flex items-center gap-3">
-                                                                <Avatar className="h-10 w-10 border">
-                                                                    <AvatarImage src={resource.avatar} alt={resource.name} />
-                                                                    <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <div>
-                                                                    <p className="font-semibold">{resource.name}</p>
-                                                                    <p className="text-sm text-muted-foreground">{resource.role}</p>
-                                                                </div>
-                                                            </div>
-                                                            {match && <Badge variant="outline">{match}% Match</Badge>}
-                                                        </div>
-                                                    )
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <p className="text-muted-foreground">
-                                                No resources allocated yet. Use the "AI Suggestions" tab to find and assign team members.
-                                            </p>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-
-                            <TabsContent value="suggestions">
-                                <ProjectAiSuggestions project={project} allResources={allResources} />
-                            </TabsContent>
-
-                            <TabsContent value="logs">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Audit Logs</CardTitle>
-                                        <CardDescription>
-                                            History of allocations for this project.
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-muted-foreground">
-                                            A detailed audit trail will be implemented here. Use the "Why?" button on the dashboard for allocation rationale.
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                        </Tabs>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <Badge variant={project.priority === 'High' ? 'destructive' : project.priority === 'Medium' ? 'secondary' : 'outline'}>
+                        {project.priority} Priority
+                    </Badge>
+                    <Button variant="outline" size="icon">
+                        <Pen className="h-4 w-4" />
+                    </Button>
                 </div>
             </div>
-        </>
+
+            <div className="grid gap-4 md:grid-cols-3">
+                <Card className="md:col-span-1">
+                    <CardHeader>
+                        <CardTitle>Project Details</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <strong>Deadline:</strong>
+                            <p>{new Date(project.deadline).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                            <strong>Required Skills:</strong>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                                {project.requiredSkills.map(skill => (
+                                    <Badge key={skill} variant="secondary">{skill}</Badge>
+                                ))}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <div className="md:col-span-2">
+                    <Tabs defaultValue="allocated">
+                        <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="allocated">Allocated Resources</TabsTrigger>
+                            <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
+                            <TabsTrigger value="logs">Audit Logs</TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="allocated">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Allocated Resources</CardTitle>
+                                    <CardDescription>
+                                        The team currently assigned to this project.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {allocatedResources.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {allocatedResources.map(({ resource, match }) => (
+                                                resource && (
+                                                    <div key={resource.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="h-10 w-10 border">
+                                                                <AvatarImage src={resource.avatar} alt={resource.name} />
+                                                                <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <p className="font-semibold">{resource.name}</p>
+                                                                <p className="text-sm text-muted-foreground">{resource.role}</p>
+                                                            </div>
+                                                        </div>
+                                                        {match && <Badge variant="outline">{match}% Match</Badge>}
+                                                    </div>
+                                                )
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground">
+                                            No resources allocated yet. Use the "AI Suggestions" tab to find and assign team members.
+                                        </p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="suggestions">
+                            <ProjectAiSuggestions project={project} allResources={allResources} />
+                        </TabsContent>
+
+                        <TabsContent value="logs">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Audit Logs</CardTitle>
+                                    <CardDescription>
+                                        History of allocations for this project.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-muted-foreground">
+                                        A detailed audit trail will be implemented here. Use the "Why?" button on the dashboard for allocation rationale.
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
+                </div>
+            </div>
+        </div>
     );
 }

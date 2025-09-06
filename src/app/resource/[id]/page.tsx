@@ -43,7 +43,9 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
             setAllProjects(projectsData);
         });
 
-        return () => unsubscribeProjects();
+        return () => {
+            unsubscribeProjects();
+        };
 
     }, [params.id]);
 
@@ -60,7 +62,9 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
             setResourceAllocations(populatedAllocations);
         });
 
-        return () => unsubscribeAllocations();
+        return () => {
+            unsubscribeAllocations();
+        };
 
     }, [resource, allProjects]);
 
