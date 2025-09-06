@@ -127,9 +127,9 @@ export function ProjectsTable({ projects, resources, allocations, loading, reque
                 {allocations
                   .filter((a) => a.projectId === project.id)
                   .map((a) => getResourceById(a.resourceId))
-                  .map((resource) =>
+                  .map((resource, index) =>
                     resource ? (
-                      <Avatar key={resource.id} className="border-2 border-card">
+                      <Avatar key={`${resource.id}-${index}`} className="border-2 border-card">
                         <AvatarImage src={resource.avatar} alt={resource.name} data-ai-hint="person portrait" />
                         <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
                       </Avatar>
@@ -141,9 +141,9 @@ export function ProjectsTable({ projects, resources, allocations, loading, reque
               <div className="flex items-center gap-2">
                 {allocations
                   .filter((a) => a.projectId === project.id)
-                  .map((a) => (
+                  .map((a, index) => (
                     <div
-                      key={a.resourceId}
+                      key={`${a.resourceId}-${index}`}
                       className={cn('h-3 w-3 rounded-full', getStatusColor(a.status))}
                       title={`${a.status} match`}
                     />
