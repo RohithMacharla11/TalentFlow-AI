@@ -63,6 +63,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
 
     }, [resource, allProjects]);
 
+
     if (loading) {
         return <p>Loading...</p>;
     }
@@ -106,7 +107,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                     <Card>
                         <CardHeader>
                             <CardTitle>Current Allocations</CardTitle>
-                        </Header>
+                        </CardHeader>
                         <CardContent>
                             {resourceAllocations.length > 0 ? (
                                 <div className="space-y-4">
