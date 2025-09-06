@@ -52,6 +52,7 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
     const handleFetchSuggestions = async () => {
         const projectsToEvaluate = targetProject ? [targetProject] : allProjects;
         if (projectsToEvaluate.length === 0) {
+            setSuggestions({ projectAllocations: [] });
             return;
         }
 
@@ -93,7 +94,7 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
         try {
             const allocationPromises = projectIds.map(projectId => {
                 const suggestion = suggestions?.projectAllocations.find(p => p.projectId === projectId);
-                const match = suggestion?.matchPercentage ?? 0;
+                const match = suggestion?.matchPercentage ?? (targetProject ? 0 : 50); // Provide a default if no suggestion
                 const reasoning = suggestion?.reasoning ?? 'Manual assignment via drag-and-drop.';
                 return addDoc(collection(db, 'allocations'), {
                     projectId,
@@ -158,9 +159,14 @@ export function ResourceAiSuggestions({ resource, allProjects, open, onOpenChang
                 <div className="py-4 max-h-[60vh] overflow-y-auto pr-4">
                         {isLoading ? (
                         <div className="space-y-4">
-                            {[...Array(3)].map((_, i) => (
-                                <div key={i} className="flex items-center space-x-4">
-                                    <Skeleton className="h-8 w-full rounded-md" />
+                            {[...Array(targetProject ? 1 : 3)].map((_, i) => (
+                                <div key={i} className="flex items-center space-x-4 p-2">
+                                     <Skeleton className="h-5 w-5 rounded-sm" />
+                                     <div className="flex-1 space-y-2">
+                                        <Skeleton className="h-4 w-[200px]" />
+                                        <Skeleton className="h-4 w-[350px]" />
+                                    </div>
+                                    <Skeleton className="h-7 w-24 rounded-full" />
                                 </div>
                             ))}
                         </div>
