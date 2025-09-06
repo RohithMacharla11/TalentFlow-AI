@@ -14,9 +14,9 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs"
-import { AiSuggestions } from "@/components/project/ai-suggestions";
 import { Button } from '@/components/ui/button';
 import { Pen } from 'lucide-react';
+import { ProjectAiSuggestions } from '@/components/project/project-ai-suggestions';
 
 export default function ProjectDetailPage({ params }: { params: { id:string } }) {
     const [project, setProject] = useState<Project | null>(null);
@@ -121,7 +121,7 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                                 <CardHeader>
                                     <CardTitle>Allocated Resources</CardTitle>
                                     <CardDescription>
-                                        Drag and drop resources to re-assign or un-assign them.
+                                        The team currently assigned to this project.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -146,13 +146,13 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                                             ))}
                                         </div>
                                     ) : (
-                                        <p className="text-muted-foreground">No resources allocated yet.</p>
+                                        <p className="text-muted-foreground">No resources allocated yet. Use the "AI Suggestions" tab to find and assign team members.</p>
                                     )}
                                 </CardContent>
                             </Card>
                         </TabsContent>
                          <TabsContent value="suggestions">
-                             <AiSuggestions project={project} allResources={allResources} />
+                             <ProjectAiSuggestions project={project} allResources={allResources} />
                          </TabsContent>
                          <TabsContent value="logs">
                              <Card>
@@ -161,7 +161,7 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                                      <CardDescription>History of allocations for this project.</CardDescription>
                                  </CardHeader>
                                  <CardContent>
-                                     <p className="text-muted-foreground">Audit trail will be implemented here.</p>
+                                     <p className="text-muted-foreground">A detailed audit trail will be implemented here. Use the "Why?" button on the dashboard for allocation rationale.</p>
                                  </CardContent>
                              </Card>
                          </TabsContent>

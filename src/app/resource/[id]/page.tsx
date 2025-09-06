@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Pen } from 'lucide-react';
 import Link from 'next/link';
+import { ResourceAiSuggestions } from '@/components/resource/resource-ai-suggestions';
 
 export default function ResourceDetailPage({ params }: { params: { id: string } }) {
     const [resource, setResource] = useState<Resource | null>(null);
@@ -127,7 +128,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-muted-foreground">Not allocated to any projects.</p>
+                                <p className="text-muted-foreground">Not allocated to any projects. Find suitable projects in the "AI Recommendations" tab.</p>
                             )}
                         </CardContent>
                     </Card>
@@ -166,15 +167,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                     </Card>
                 </TabsContent>
                 <TabsContent value="recommendations">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>AI Recommendations</CardTitle>
-                            <CardDescription>Projects this resource might be a good fit for.</CardDescription>
-                        </Header>
-                        <CardContent>
-                             <p className="text-muted-foreground">AI recommendations for suitable projects will be implemented here.</p>
-                        </CardContent>
-                    </Card>
+                    <ResourceAiSuggestions resource={resource} allProjects={allProjects} />
                 </TabsContent>
             </Tabs>
         </div>
