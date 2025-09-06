@@ -12,6 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {
   allocateResource,
+  getAllocations,
   getProjects,
   getResources,
 } from '@/services/firestore-service';
@@ -76,6 +77,19 @@ const getResourcesTool = ai.defineTool(
   }
 );
 
+const getAllocationsTool = ai.defineTool(
+  {
+    name: 'getAllocations',
+    description: 'Get a list of all current resource allocations.',
+    inputSchema: z.object({}),
+    outputSchema: z.array(z.object({resourceId: z.string(), projectId: z.string()}))
+  },
+  async () => {
+      const allocations = await getAllocations();
+      return allocations.map(a => ({ resourceId: a.resourceId, projectId: a.projectId }));
+  }
+);
+
 
 const AllocateResourcesInputSchema = z.object({
   request: z
@@ -103,8 +117,10 @@ export async function allocateResources(
 const allocateResourcesPrompt = ai.definePrompt({
   name: 'allocateResourcesPrompt',
   input: {schema: AllocateResourcesInputSchema},
-  tools: [allocateResourceTool, getProjectsTool, getResourcesTool],
-  prompt: `You are a resource allocation expert. Based on the following request, use the available tools to get information or allocate resources.
+  tools: [allocateResourceTool, getProjectsTool, getResourcesTool, getAllocationsTool],
+  prompt: `You are a resource allocation expert. Based on the following request, use the available tools to get information about projects, resources, and current allocations to provide a helpful response or to allocate resources.
+
+When asked about available or remaining resources, you must first get all resources and all allocations, then determine which resources are not currently allocated.
 
 Request: {{{request}}}
 

@@ -32,6 +32,18 @@ export async function getResources(): Promise<Resource[]> {
 }
 
 /**
+ * Fetches all allocations from Firestore.
+ * @returns A promise that resolves to an array of allocations.
+ */
+export async function getAllocations(): Promise<Allocation[]> {
+    const allocationsCol = collection(db, 'allocations');
+    const allocationSnapshot = await getDocs(allocationsCol);
+    const allocationList = allocationSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Allocation));
+    return allocationList;
+}
+
+
+/**
  * Creates a new allocation in Firestore.
  * @param allocation - The allocation data to save.
  * @returns A promise that resolves when the allocation is created.
