@@ -37,7 +37,7 @@ export default function CalendarPage() {
     const unsubscribeAllocations = onSnapshot(qAllocations, (querySnapshot) => {
         const allocationsData: Allocation[] = [];
         querySnapshot.forEach((doc) => {
-            allocationsData.push({ ...doc.data() } as Allocation);
+            allocationsData.push({ id: doc.id, ...doc.data() } as Allocation);
         });
         setAllocations(allocationsData);
     });

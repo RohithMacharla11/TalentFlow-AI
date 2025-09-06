@@ -79,7 +79,7 @@ export function CalendarView({ projects, resources, allocations }: CalendarViewP
                                         const resource = getResourceById(alloc.resourceId);
                                         const project = projects.find(p => p.id === alloc.projectId);
                                         return (
-                                            <div key={`${alloc.projectId}-${alloc.resourceId}`} className="bg-primary/10 text-primary-foreground p-1 rounded-md text-xs">
+                                            <div key={alloc.id} className="bg-primary/10 text-primary-foreground p-1 rounded-md text-xs">
                                                 <p className="font-semibold text-primary">{resource?.name}</p>
                                                 <p className="text-primary/80 truncate">{project?.name}</p>
                                             </div>
