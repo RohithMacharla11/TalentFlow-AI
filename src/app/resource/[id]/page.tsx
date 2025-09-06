@@ -7,16 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { notFound, useParams } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Pen, Sparkles, Zap } from 'lucide-react';
+import { Pen, Sparkles, Zap, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { ResourceAiSuggestions } from '@/components/resource/resource-ai-suggestions';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ResourceDetailPage() {
     const params = useParams();
+    const router = useRouter();
     const resourceId = params.id as string;
     const [resource, setResource] = useState<Resource | null>(null);
     const [resourceAllocations, setResourceAllocations] = useState<(Allocation & { project?: Project })[]>([]);
@@ -31,7 +32,7 @@ export default function ResourceDetailPage() {
         const fetchResource = async () => {
             const resourceDoc = await getDoc(doc(db, "resources", resourceId));
             if (resourceDoc.exists()) {
-                setResource({ id: resourceDoc.id, ...resourceDoc.data() } as Resource);
+                setResource({ id: resourceDoc.id, ...doc.data() } as Resource);
             } else {
                 notFound();
             }
@@ -85,7 +86,10 @@ export default function ResourceDetailPage() {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-            <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4 mb-4">
+                 <Button variant="outline" size="icon" onClick={() => router.back()}>
+                    <ArrowLeft className="h-4 w-4" />
+                </Button>
                 <div className="flex items-center gap-4">
                     <Avatar className="h-20 w-20 border">
                         <AvatarImage src={resource.avatar} alt={resource.name} />
@@ -97,6 +101,7 @@ export default function ResourceDetailPage() {
                         <p className="text-muted-foreground">{resource.email}</p>
                     </div>
                 </div>
+                 <div className="flex-grow" />
                 <Button variant="outline" size="icon">
                     <Pen className="h-4 w-4" />
                 </Button>
