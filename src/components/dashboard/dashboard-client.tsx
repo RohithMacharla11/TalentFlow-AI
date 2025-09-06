@@ -8,13 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ProjectsTable } from './projects-table';
 import { ResourcesTable } from './resources-table';
 import type { Project, Resource, Allocation, ProjectRequest } from '@/lib/types';
-import { Briefcase, Users, FileText } from 'lucide-react';
+import { Briefcase, Users, FileText, UserPlus } from 'lucide-react';
 import { AddProjectModal } from './add-project-modal';
 import { AddResourceModal, ResourceFormValues } from './add-resource-modal';
 import { ImportCvModal } from './import-cv-modal';
 import { useAuth } from '@/contexts/auth-context';
 import { getResourceByEmail } from '@/services/firestore-service';
 import { Skeleton } from '../ui/skeleton';
+import { Button } from '../ui/button';
 
 export function DashboardClient() {
   const { user } = useAuth();
@@ -38,11 +39,22 @@ export function DashboardClient() {
     };
 
     if (user?.role === 'Team Member' && user.email) {
-        fetchAndSetCurrentUserResource(user.email);
+        // We use onSnapshot to listen for real-time creation of the resource profile
+        const q = query(collection(db, "resources"), where("email", "==", user.email));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            if (!snapshot.empty) {
+                const docData = snapshot.docs[0];
+                setCurrentUserResource({ id: docData.id, ...docData.data() } as Resource);
+            } else {
+                setCurrentUserResource(null);
+            }
+            if (loadingResourceProfile) setLoadingResourceProfile(false);
+        });
+        return () => unsubscribe();
     } else {
         setLoadingResourceProfile(false);
     }
-  }, [user]);
+  }, [user, loadingResourceProfile]);
 
   useEffect(() => {
     setLoading(true);
@@ -77,6 +89,34 @@ export function DashboardClient() {
 
   // Team member view
   if (user?.role === 'Team Member') {
+    if (loadingResourceProfile) {
+        return (
+             <div className="space-y-4">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-6 w-1/2" />
+            </div>
+        )
+    }
+
+    if (!currentUserResource) {
+        return (
+             <div className="flex flex-col items-center justify-center text-center p-8 border rounded-lg bg-card mt-8">
+                <UserPlus className="h-16 w-16 text-primary mb-4" />
+                <h2 className="text-2xl font-bold font-headline mb-2">Welcome to TalentFlow, {user.displayName}!</h2>
+                <p className="text-muted-foreground mb-6 max-w-md">
+                    To get started and join projects, you need to complete your resource profile.
+                    This helps project managers find you for the right tasks.
+                </p>
+                <AddResourceModal 
+                    open={isAddResourceOpen} 
+                    setOpen={setIsAddResourceOpen} 
+                    prefillData={{ name: user.displayName || '', email: user.email || ''}}
+                    isCompletingProfile
+                />
+            </div>
+        )
+    }
+
     const assignedProjectIds = allocations.filter(a => a.resourceId === currentUserResource?.id).map(a => a.projectId);
     const assignedProjects = projects.filter(p => assignedProjectIds.includes(p.id));
 

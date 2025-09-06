@@ -19,7 +19,7 @@ import { z } from 'zod';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, UserPlus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Resource } from '@/lib/types';
 import { useAuth } from '@/contexts/auth-context';
@@ -41,9 +41,10 @@ interface AddResourceModalProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   prefillData?: Partial<ResourceFormValues>;
+  isCompletingProfile?: boolean;
 }
 
-export function AddResourceModal({ open, setOpen, prefillData }: AddResourceModalProps) {
+export function AddResourceModal({ open, setOpen, prefillData, isCompletingProfile = false }: AddResourceModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<ResourceFormValues>({
@@ -68,8 +69,8 @@ export function AddResourceModal({ open, setOpen, prefillData }: AddResourceModa
         createdAt: serverTimestamp(),
       });
       toast({
-        title: "Resource Added",
-        description: `${data.name} has been successfully added.`,
+        title: isCompletingProfile ? "Profile Completed!" : "Resource Added",
+        description: isCompletingProfile ? "You can now request to join projects." : `${data.name} has been successfully added.`,
       });
       reset();
       setOpen(false);
@@ -77,47 +78,67 @@ export function AddResourceModal({ open, setOpen, prefillData }: AddResourceModa
       console.error("Error adding document: ", error);
       toast({
         title: "Error",
-        description: "Failed to add resource. Please try again.",
+        description: "Failed to save resource details. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  if (user?.role !== 'Administrator') return null;
+  if (user?.role === 'Project Manager') return null;
+
+  const getTrigger = () => {
+    if (isCompletingProfile) {
+      return (
+        <Button onClick={() => setOpen(true)}>
+          <UserPlus className="mr-2 h-4 w-4" /> Complete Your Profile
+        </Button>
+      );
+    }
+    if (user?.role === 'Administrator') {
+      return (
+        <Button onClick={() => setOpen(true)}>
+          <PlusCircle className="mr-2 h-4 w-4" /> Add Resource
+        </Button>
+      )
+    }
+    return null;
+  }
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Resource
-        </Button>
+        {getTrigger()}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Resource</DialogTitle>
+          <DialogTitle>{isCompletingProfile ? 'Complete Your Resource Profile' : 'Add New Resource'}</DialogTitle>
           <DialogDescription>
-            Fill in the details below to add a new resource.
+            {isCompletingProfile 
+                ? "Fill in your details to be added to the resource pool."
+                : "Fill in the details below to add a new resource."
+            }
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" {...register('name')} />
+            <Input id="name" {...register('name')} disabled={isCompletingProfile} />
             {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register('email')} />
+            <Input id="email" type="email" {...register('email')} disabled={isCompletingProfile} />
             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="role">Role</Label>
-            <Input id="role" {...register('role')} />
+            <Label htmlFor="role">Role / Job Title</Label>
+            <Input id="role" {...register('role')} placeholder="e.g. Software Engineer"/>
             {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="skills">Skills (comma-separated)</Label>
-            <Input id="skills" {...register('skills')} />
+            <Input id="skills" {...register('skills')} placeholder="e.g. React, TypeScript, Figma" />
             {errors.skills && <p className="text-red-500 text-sm">{errors.skills.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -151,7 +172,7 @@ export function AddResourceModal({ open, setOpen, prefillData }: AddResourceModa
            <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="location">Location</Label>
-              <Input id="location" {...register('location')} />
+              <Input id="location" {...register('location')} placeholder="e.g. San Francisco, CA" />
               {errors.location && <p className="text-red-500 text-sm">{errors.location.message}</p>}
             </div>
              <div className="grid gap-2">
@@ -162,7 +183,7 @@ export function AddResourceModal({ open, setOpen, prefillData }: AddResourceModa
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Adding...' : 'Add Resource'}
+              {isSubmitting ? 'Saving...' : 'Save Profile'}
             </Button>
           </DialogFooter>
         </form>
