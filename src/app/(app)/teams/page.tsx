@@ -122,8 +122,8 @@ export default function TeamsPage() {
                     )}
                     </CardHeader>
                     <CardContent className="space-y-4">
-                    {members.map(member => (
-                        <Link href={`/resource/${member.id}`} key={member.id} className="flex items-center gap-4 p-2 rounded-md hover:bg-muted/50">
+                    {members.map((member, index) => (
+                        <Link href={`/resource/${member.id}`} key={`${member.id}-${index}`} className="flex items-center gap-4 p-2 rounded-md hover:bg-muted/50">
                         <Avatar>
                             <AvatarImage src={member.avatar} alt={member.name} data-ai-hint="person portrait" />
                             <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
