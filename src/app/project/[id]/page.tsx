@@ -10,6 +10,7 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs"
+import { AiSuggestions } from "@/components/project/ai-suggestions";
 
 export default function ProjectDetailPage({ params }: { params: { id: string } }) {
     const project = projects.find(p => p.id === params.id);
@@ -101,15 +102,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                             </Card>
                         </TabsContent>
                          <TabsContent value="suggestions">
-                             <Card>
-                                 <CardHeader>
-                                     <CardTitle>AI Suggestions</CardTitle>
-                                     <CardDescription>Top 3 AI-recommended candidates for this project.</CardDescription>
-                                 </CardHeader>
-                                 <CardContent>
-                                     <p className="text-muted-foreground">AI suggestions will be implemented here.</p>
-                                 </CardContent>
-                             </Card>
+                             <AiSuggestions project={project} allResources={resources} />
                          </TabsContent>
                          <TabsContent value="logs">
                              <Card>
