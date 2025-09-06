@@ -24,6 +24,12 @@ export function AiSuggestions({ project, allResources }: AiSuggestionsProps) {
 
     useEffect(() => {
         const fetchSuggestions = async () => {
+            if (allResources.length === 0) {
+                setSuggestions(null);
+                setIsLoading(false);
+                return;
+            }
+
             setIsLoading(true);
             const availableResources = allResources.map(r => ({
                 id: r.id,
@@ -47,7 +53,7 @@ export function AiSuggestions({ project, allResources }: AiSuggestionsProps) {
             }
         };
 
-        if (project && allResources.length > 0) {
+        if (project) {
            fetchSuggestions();
         }
     }, [project, allResources]);
@@ -135,7 +141,12 @@ export function AiSuggestions({ project, allResources }: AiSuggestionsProps) {
                         </div>
                     </div>
                 ) : (
-                    <p className="text-muted-foreground">No AI suggestions available at this time.</p>
+                    <p className="text-muted-foreground">
+                        {allResources.length === 0
+                            ? "No resources available to suggest. Add resources to see AI recommendations."
+                            : "No suitable AI suggestions found for this project."
+                        }
+                    </p>
                 )}
             </CardContent>
         </Card>
