@@ -1,6 +1,7 @@
+
 'use client';
 import { useEffect, useState } from 'react';
-import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Resource, Project, Allocation } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,10 +11,21 @@ import { Progress } from "@/components/ui/progress";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Pen, Sparkles, Zap, ArrowLeft } from 'lucide-react';
+import { Pen, Sparkles, Zap, ArrowLeft, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { ResourceAiSuggestions } from '@/components/resource/resource-ai-suggestions';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function ResourceDetailPage() {
     const params = useParams();
@@ -50,11 +62,11 @@ export default function ResourceDetailPage() {
     }, [resourceId]);
 
     useEffect(() => {
-        if (!resource || allProjects.length === 0) return;
+        if (!resource) return;
 
         const qAllocations = query(collection(db, "allocations"), where("resourceId", "==", resource.id));
         const unsubscribeAllocations = onSnapshot(qAllocations, (snapshot) => {
-            const allocationsData = snapshot.docs.map(doc => doc.data() as Allocation);
+            const allocationsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()} as Allocation));
             const populatedAllocations = allocationsData.map(alloc => {
                 const project = allProjects.find(p => p.id === alloc.projectId);
                 return { ...alloc, project };
@@ -75,6 +87,23 @@ export default function ResourceDetailPage() {
             return;
         }
         setIsSuggestionModalOpen(true);
+    };
+
+    const handleRemoveAllocation = async (allocationId: string) => {
+        try {
+          await deleteDoc(doc(db, "allocations", allocationId));
+          toast({
+            title: "Allocation Removed",
+            description: "The resource has been successfully de-allocated.",
+          });
+        } catch (error) {
+          console.error("Error removing allocation:", error);
+          toast({
+            title: "Error",
+            description: "Failed to remove allocation. Please try again.",
+            variant: "destructive",
+          });
+        }
     };
 
     if (loading) return <div className="flex-1 space-y-4 p-4 md:p-8 pt-6"><p>Loading...</p></div>;
@@ -123,18 +152,41 @@ export default function ResourceDetailPage() {
                         <CardContent>
                             {resourceAllocations.length > 0 ? (
                                 <div className="space-y-4">
-                                    {resourceAllocations.map(({ project, match, status }) => (
-                                        project && (
-                                            <Link href={`/project/${project.id}`} key={project.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
-                                                <div>
-                                                    <p className="font-semibold">{project.name}</p>
-                                                    <p className="text-sm text-muted-foreground">Due: {new Date(project.deadline).toLocaleDateString()}</p>
+                                    {resourceAllocations.map((allocation) => (
+                                        allocation.project && (
+                                            <div key={allocation.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50">
+                                                <Link href={`/project/${allocation.project.id}`} className="flex-grow">
+                                                    <div>
+                                                        <p className="font-semibold">{allocation.project.name}</p>
+                                                        <p className="text-sm text-muted-foreground">Due: {new Date(allocation.project.deadline).toLocaleDateString()}</p>
+                                                    </div>
+                                                </Link>
+                                                <div className="text-right mr-4">
+                                                    {allocation.match && <p className="font-semibold">{allocation.match}% Match</p>}
+                                                    {allocation.status && <p className={`text-sm font-semibold capitalize ${allocation.status === 'matched' ? 'text-green-500' : allocation.status === 'partial' ? 'text-yellow-500' : 'text-red-500'}`}>{allocation.status}</p>}
                                                 </div>
-                                                <div className="text-right">
-                                                    {match && <p className="font-semibold">{match}% Match</p>}
-                                                    {status && <p className={`text-sm font-semibold capitalize ${status === 'matched' ? 'text-green-500' : status === 'partial' ? 'text-yellow-500' : 'text-red-500'}`}>{status}</p>}
-                                                </div>
-                                            </Link>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This action will de-allocate {resource.name} from the project "{allocation.project?.name}". This cannot be undone.
+                                                        </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleRemoveAllocation(allocation.id)}>
+                                                            Continue
+                                                        </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
                                         )
                                     ))}
                                 </div>
