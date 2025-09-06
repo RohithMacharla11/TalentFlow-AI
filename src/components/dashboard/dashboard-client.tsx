@@ -9,13 +9,17 @@ import { ResourcesTable } from './resources-table';
 import type { Project, Resource, Allocation } from '@/lib/types';
 import { Briefcase, Users } from 'lucide-react';
 import { AddProjectModal } from './add-project-modal';
-import { AddResourceModal } from './add-resource-modal';
+import { AddResourceModal, ResourceFormValues } from './add-resource-modal';
+import { ImportCvModal } from './import-cv-modal';
 
 export function DashboardClient() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [allocations, setAllocations] = useState<Allocation[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [isAddResourceOpen, setIsAddResourceOpen] = useState(false);
+  const [prefillData, setPrefillData] = useState<Partial<ResourceFormValues> | undefined>();
 
   useEffect(() => {
     const qProjects = query(collection(db, "projects"));
@@ -64,7 +68,12 @@ export function DashboardClient() {
         </div>
         <div className="flex items-center space-x-2">
           <AddProjectModal />
-          <AddResourceModal />
+          <ImportCvModal setPrefillData={setPrefillData} setAddResourceOpen={setIsAddResourceOpen} />
+          <AddResourceModal 
+            open={isAddResourceOpen}
+            setOpen={setIsAddResourceOpen}
+            prefillData={prefillData}
+          />
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">

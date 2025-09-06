@@ -1,4 +1,3 @@
-
 'use client';
 import { useEffect, useState } from 'react';
 import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
@@ -9,12 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { notFound, useParams } from "next/navigation";
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
 import { Pen, Sparkles, Zap } from 'lucide-react';
 import Link from 'next/link';
@@ -51,9 +45,7 @@ export default function ResourceDetailPage() {
             setAllProjects(projectsData);
         });
 
-        return () => {
-            unsubscribeProjects();
-        };
+        return () => unsubscribeProjects();
     }, [resourceId]);
 
     useEffect(() => {
@@ -69,9 +61,7 @@ export default function ResourceDetailPage() {
             setResourceAllocations(populatedAllocations);
         });
 
-        return () => {
-            unsubscribeAllocations();
-        };
+        return () => unsubscribeAllocations();
     }, [resource, allProjects]);
 
     const handleAiSuggestClick = () => {
@@ -86,13 +76,8 @@ export default function ResourceDetailPage() {
         setIsSuggestionModalOpen(true);
     };
 
-    if (loading) {
-        return <div className="flex-1 space-y-4 p-4 md:p-8 pt-6"><p>Loading...</p></div>;
-    }
-
-    if (!resource) {
-        return notFound();
-    }
+    if (loading) return <div className="flex-1 space-y-4 p-4 md:p-8 pt-6"><p>Loading...</p></div>;
+    if (!resource) return notFound();
 
     const totalAvailability = 40;
     const allocatedHours = resourceAllocations.reduce((acc, curr) => acc + (curr.project ? 8 : 0), 0); // Simplified: 8h per project
@@ -112,7 +97,7 @@ export default function ResourceDetailPage() {
                         <p className="text-muted-foreground">{resource.email}</p>
                     </div>
                 </div>
-                 <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon">
                     <Pen className="h-4 w-4" />
                 </Button>
             </div>
@@ -124,6 +109,7 @@ export default function ResourceDetailPage() {
                     <TabsTrigger value="availability">Availability</TabsTrigger>
                     <TabsTrigger value="recommendations">AI Recommendations</TabsTrigger>
                 </TabsList>
+
                 <TabsContent value="overview">
                     <Card>
                         <CardHeader>
@@ -153,24 +139,26 @@ export default function ResourceDetailPage() {
                         </CardContent>
                     </Card>
                 </TabsContent>
+
                 <TabsContent value="skills">
                     <Card>
                         <CardHeader>
                             <CardTitle>Skills & Certifications</CardTitle>
-                        </Header>
+                        </CardHeader>
                         <CardContent className="flex flex-wrap gap-2">
-                             {resource.skills.map(skill => (
+                            {resource.skills.map(skill => (
                                 <Badge key={skill} variant="secondary" className="text-base py-1 px-3">{skill}</Badge>
                             ))}
                         </CardContent>
                     </Card>
                 </TabsContent>
+
                 <TabsContent value="availability">
                     <Card>
                         <CardHeader>
                             <CardTitle>Availability</CardTitle>
                             <CardDescription>Resource's weekly capacity and current commitment.</CardDescription>
-                        </Header>
+                        </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <div className="flex justify-between font-mono text-sm">
@@ -186,6 +174,7 @@ export default function ResourceDetailPage() {
                         </CardContent>
                     </Card>
                 </TabsContent>
+
                 <TabsContent value="recommendations">
                     <Card>
                         <CardHeader>
@@ -193,7 +182,7 @@ export default function ResourceDetailPage() {
                                 <Sparkles className="text-primary" /> AI Project Suggestions
                             </CardTitle>
                             <CardDescription>Use AI to find the most suitable projects for {resource.name}.</CardDescription>
-                        </Header>
+                        </CardHeader>
                         <CardContent className="text-center">
                             <Button onClick={handleAiSuggestClick} disabled={allProjects.length === 0}>
                                 <Zap className="mr-2 h-4 w-4" /> AI Suggest Projects
@@ -208,7 +197,8 @@ export default function ResourceDetailPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
-             {resource && (
+
+            {resource && (
                 <ResourceAiSuggestions
                     resource={resource}
                     allProjects={allProjects}

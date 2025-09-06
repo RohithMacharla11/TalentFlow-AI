@@ -23,6 +23,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/calendar', label: 'Calendar', icon: Calendar },
+    { href: '/teams', label: 'Teams', icon: Users },
   ];
 
   return (
