@@ -68,11 +68,11 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
     }
 
     if (!resource) {
-        notFound();
+        return notFound();
     }
 
     const totalAvailability = 40;
-    const allocatedHours = resourceAllocations.length * 8; // Simplified: 8h per project
+    const allocatedHours = resourceAllocations.reduce((acc, curr) => acc + (curr.project ? 8 : 0), 0); // Simplified: 8h per project, ensure project exists
     const remainingAvailability = Math.max(0, resource.availability - allocatedHours);
 
 
@@ -118,8 +118,8 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                                                     <p className="text-sm text-muted-foreground">Due: {new Date(project.deadline).toLocaleDateString()}</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-semibold">{match}% Match</p>
-                                                    <p className={`text-sm font-semibold capitalize ${status === 'matched' ? 'text-green-500' : status === 'partial' ? 'text-yellow-500' : 'text-red-500'}`}>{status}</p>
+                                                    {match && <p className="font-semibold">{match}% Match</p>}
+                                                    {status && <p className={`text-sm font-semibold capitalize ${status === 'matched' ? 'text-green-500' : status === 'partial' ? 'text-yellow-500' : 'text-red-500'}`}>{status}</p>}
                                                 </div>
                                             </Link>
                                         )
@@ -135,7 +135,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                     <Card>
                         <CardHeader>
                             <CardTitle>Skills & Certifications</CardTitle>
-                        </CardHeader>
+                        </Header>
                         <CardContent className="flex flex-wrap gap-2">
                              {resource.skills.map(skill => (
                                 <Badge key={skill} variant="secondary" className="text-base py-1 px-3">{skill}</Badge>
@@ -148,7 +148,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                         <CardHeader>
                             <CardTitle>Availability</CardTitle>
                             <CardDescription>Resource's weekly capacity and current commitment.</CardDescription>
-                        </CardHeader>
+                        </Header>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <div className="flex justify-between font-mono text-sm">

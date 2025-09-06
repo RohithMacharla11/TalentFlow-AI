@@ -123,7 +123,7 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                                     <CardDescription>
                                         Drag and drop resources to re-assign or un-assign them.
                                     </CardDescription>
-                                </Header>
+                                </CardHeader>
                                 <CardContent>
                                     {allocatedResources.length > 0 ? (
                                         <div className="space-y-4">
@@ -159,7 +159,7 @@ export default function ProjectDetailPage({ params }: { params: { id:string } })
                                  <CardHeader>
                                      <CardTitle>Audit Logs</CardTitle>
                                      <CardDescription>History of allocations for this project.</CardDescription>
-                                 </Header>
+                                 </CardHeader>
                                  <CardContent>
                                      <p className="text-muted-foreground">Audit trail will be implemented here.</p>
                                  </CardContent>
