@@ -2,7 +2,6 @@
 'use client';
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useDroppable } from '@dnd-kit/core';
 import {
   Table,
   TableBody,
@@ -40,15 +39,6 @@ function ProjectRow({ project, resources, allocations, requests, currentUserReso
     const { toast } = useToast();
     const isManager = user?.role === 'Administrator' || user?.role === 'Project Manager';
 
-    const { setNodeRef, isOver } = useDroppable({
-        id: `project-drop-${project.id}`,
-        data: {
-            type: 'project',
-            project: project,
-        },
-        disabled: !isManager,
-    });
-
     const getResourceById = (id: string) => resources.find((r) => r.id === id);
 
     const getStatusColor = (status: Allocation['status']) => {
@@ -85,10 +75,9 @@ function ProjectRow({ project, resources, allocations, requests, currentUserReso
 
     return (
         <TableRow
-            ref={setNodeRef}
             key={project.id}
             onClick={() => handleRowClick(project.id)}
-            className={cn("cursor-pointer", { 'bg-primary/10 outline-dashed outline-2 outline-primary': isOver })}
+            className="cursor-pointer"
         >
             <TableCell className="font-medium">{project.name}</TableCell>
             <TableCell>
