@@ -149,17 +149,17 @@ export default function ProjectDetailPage() {
                             </h3>
                              {allocatedResources.length > 0 ? (
                                 <div className="space-y-4">
-                                    {allocatedResources.map(({ resource }) => (
-                                        resource && (
-                                            <div key={resource.id} className="flex items-center justify-between p-2 rounded-md">
+                                    {allocatedResources.map((allocation) => (
+                                        allocation.resource && (
+                                            <div key={allocation.id} className="flex items-center justify-between p-2 rounded-md">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-10 w-10 border">
-                                                        <AvatarImage src={resource.avatar} alt={resource.name} />
-                                                        <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
+                                                        <AvatarImage src={allocation.resource.avatar} alt={allocation.resource.name} />
+                                                        <AvatarFallback>{allocation.resource.name.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <p className="font-semibold">{resource.name}</p>
-                                                        <p className="text-sm text-muted-foreground">{resource.role}</p>
+                                                        <p className="font-semibold">{allocation.resource.name}</p>
+                                                        <p className="text-sm text-muted-foreground">{allocation.resource.role}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -216,9 +216,9 @@ export default function ProjectDetailPage() {
                                 <CardContent>
                                      {allocatedResources.length > 0 ? (
                                         <div className="space-y-6">
-                                            {allocatedResources.map(({ resource, reasoning, match, createdAt }) => (
+                                            {allocatedResources.map(({ id, resource, reasoning, match, createdAt }) => (
                                                 resource && (
-                                                    <div key={resource.id} className="flex items-start gap-4">
+                                                    <div key={id} className="flex items-start gap-4">
                                                         <FileText className="h-5 w-5 text-muted-foreground mt-1" />
                                                         <div className="flex-1">
                                                             <p className="text-sm">
