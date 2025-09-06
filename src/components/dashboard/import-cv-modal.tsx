@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useCallback } from 'react';
 import {
@@ -16,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { UploadCloud } from 'lucide-react';
 import { extractInfoFromCv } from '@/ai/flows/extract-info-from-cv';
 import type { ResourceFormValues } from './add-resource-modal';
+import { useAuth } from '@/contexts/auth-context';
 
 interface ImportCvModalProps {
   setPrefillData: (data: Partial<ResourceFormValues>) => void;
@@ -23,6 +25,7 @@ interface ImportCvModalProps {
 }
 
 export function ImportCvModal({ setPrefillData, setAddResourceOpen }: ImportCvModalProps) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -77,6 +80,8 @@ export function ImportCvModal({ setPrefillData, setAddResourceOpen }: ImportCvMo
       setIsParsing(false);
     }
   };
+
+  if (user?.role !== 'Administrator') return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

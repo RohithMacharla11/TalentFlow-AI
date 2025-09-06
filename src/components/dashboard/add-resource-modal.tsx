@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState } from 'react';
 import {
@@ -21,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PlusCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Resource } from '@/lib/types';
+import { useAuth } from '@/contexts/auth-context';
 
 const resourceSchema = z.object({
   name: z.string().min(1, 'Resource name is required'),
@@ -42,6 +44,7 @@ interface AddResourceModalProps {
 }
 
 export function AddResourceModal({ open, setOpen, prefillData }: AddResourceModalProps) {
+  const { user } = useAuth();
   const { toast } = useToast();
   const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<ResourceFormValues>({
     resolver: zodResolver(resourceSchema),
@@ -79,6 +82,8 @@ export function AddResourceModal({ open, setOpen, prefillData }: AddResourceModa
       });
     }
   };
+
+  if (user?.role !== 'Administrator') return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

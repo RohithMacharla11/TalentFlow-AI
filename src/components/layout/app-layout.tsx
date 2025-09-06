@@ -17,17 +17,21 @@ import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, Calendar, Users, ListTodo, Bot, BarChart } from 'lucide-react';
 import { Chatbot } from '../chatbot';
+import { useAuth } from '@/contexts/auth-context';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { user } = useAuth();
 
-  const navItems = [
-    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/allocations', label: 'Allocations', icon: ListTodo },
-    { href: '/calendar', label: 'Calendar', icon: Calendar },
-    { href: '/teams', label: 'Teams', icon: Users },
-    { href: '/insights', label: 'Graphs & Insights', icon: BarChart },
+  const allNavItems = [
+    { href: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['Administrator', 'Project Manager', 'Team Member'] },
+    { href: '/allocations', label: 'Allocations', icon: ListTodo, roles: ['Administrator', 'Project Manager'] },
+    { href: '/calendar', label: 'Calendar', icon: Calendar, roles: ['Administrator', 'Project Manager', 'Team Member'] },
+    { href: '/teams', label: 'Teams', icon: Users, roles: ['Administrator', 'Project Manager'] },
+    { href: '/insights', label: 'Graphs & Insights', icon: BarChart, roles: ['Administrator', 'Project Manager'] },
   ];
+
+  const navItems = allNavItems.filter(item => user?.role && item.roles.includes(user.role));
 
   return (
     <SidebarProvider>
