@@ -1,4 +1,3 @@
-
 'use client';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -15,6 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { User as UserIcon, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import { Notifications } from './notifications';
 
 
 export function Header() {
@@ -27,6 +27,7 @@ export function Header() {
       <SidebarTrigger className="md:hidden" />
       <div className="flex-1" />
       <ThemeToggle />
+      <Notifications />
       {user && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

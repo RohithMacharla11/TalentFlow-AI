@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Target, Info, CheckCircle, AlertTriangle, XCircle, Calendar, Clock } from 'lucide-react';
+import { Target, Info, CheckCircle, AlertTriangle, XCircle, Calendar, Clock, WandSparkles } from 'lucide-react';
 import type { Project, Resource, Allocation } from '@/lib/types';
+import { resolveConflict } from '@/ai/flows/resolve-conflict-flow';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import { Skeleton } from '../ui/skeleton';
 
 interface AllocationModalProps {
     project: Project;
@@ -39,6 +43,99 @@ const statusInfo = {
   }
 }
 
+function AllocationItem({ allocation, resource, project }: { allocation: Allocation, resource: Resource, project: Project }) {
+    const { toast } = useToast();
+    const [isResolving, setIsResolving] = useState(false);
+    const [suggestion, setSuggestion] = useState<string | null>(null);
+    const status = statusInfo[allocation.status];
+
+    const handleResolveConflict = async () => {
+        setIsResolving(true);
+        setSuggestion(null);
+        try {
+            const result = await resolveConflict({
+                projectId: project.id,
+                resourceId: resource.id,
+                reasoning: allocation.reasoning,
+            });
+            setSuggestion(result.suggestion);
+        } catch (error) {
+            console.error("Error resolving conflict:", error);
+            toast({
+                title: "Error",
+                description: "Could not get a conflict resolution suggestion.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsResolving(false);
+        }
+    }
+
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-start gap-4">
+                <Avatar className="h-12 w-12 border">
+                    <AvatarImage src={resource.avatar} alt={resource.name} data-ai-hint="person portrait" />
+                    <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h3 className="font-semibold">{resource.name}</h3>
+                            <p className="text-sm text-muted-foreground">{resource.role}</p>
+                        </div>
+                        <Badge variant="outline" className="flex items-center gap-1.5">
+                            <Target className="h-4 w-4 text-primary" />
+                            <span className="font-mono text-sm">Confidence: {allocation.match}%</span>
+                        </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <status.icon className={`h-4 w-4 ${status.color}`} />
+                      <span className={`text-sm font-medium ${status.color}`}>{status.text}</span>
+                    </div>
+                </div>
+            </div>
+            <div className="ml-16 pl-2 border-l-2 space-y-3 text-sm">
+                <h4 className="font-semibold text-muted-foreground">Reasoning:</h4>
+                <p className="text-muted-foreground italic">"{allocation.reasoning}"</p>
+                <div className="space-y-2 text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        <span>Resource has <span className="font-semibold text-foreground">{resource.availability} hours/week</span> available.</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        <span>Aligns with project deadline of <span className="font-semibold text-foreground">{new Date(project.deadline).toLocaleDateString()}</span>.</span>
+                    </div>
+                </div>
+                {allocation.status === 'conflict' && (
+                    <div className="pt-2">
+                         {!suggestion && (
+                            <Button size="sm" variant="destructive" onClick={handleResolveConflict} disabled={isResolving}>
+                                <WandSparkles className="mr-2 h-4 w-4" />
+                                {isResolving ? 'Analyzing...' : 'Resolve Conflict'}
+                            </Button>
+                         )}
+                         {isResolving && <Skeleton className="h-12 w-full" />}
+                         {suggestion && (
+                             <Alert>
+                                <WandSparkles className="h-4 w-4" />
+                                <AlertTitle>AI Suggestion</AlertTitle>
+                                <AlertDescription>
+                                    {suggestion}
+                                </AlertDescription>
+                            </Alert>
+                         )}
+                    </div>
+                )}
+            </div>
+            <Separator className="my-4" />
+          </div>
+    )
+}
+
+
 export function AllocationModal({ project, allocations, resources }: AllocationModalProps) {
   const getResourceById = (id: string) => resources.find((r) => r.id === id);
 
@@ -59,50 +156,10 @@ export function AllocationModal({ project, allocations, resources }: AllocationM
         <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
           {allocations.map(allocation => {
             const resource = getResourceById(allocation.resourceId);
-            const status = statusInfo[allocation.status];
             if (!resource) return null;
 
             return (
-              <div key={resource.id} className="space-y-4">
-                <div className="flex items-start gap-4">
-                    <Avatar className="h-12 w-12 border">
-                        <AvatarImage src={resource.avatar} alt={resource.name} data-ai-hint="person portrait" />
-                        <AvatarFallback>{resource.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="font-semibold">{resource.name}</h3>
-                                <p className="text-sm text-muted-foreground">{resource.role}</p>
-                            </div>
-                            <Badge variant="outline" className="flex items-center gap-1.5">
-                                <Target className="h-4 w-4 text-primary" />
-                                <span className="font-mono text-sm">Confidence: {allocation.match}%</span>
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-2 mt-2">
-                          <status.icon className={`h-4 w-4 ${status.color}`} />
-                          <span className={`text-sm font-medium ${status.color}`}>{status.text}</span>
-                        </div>
-                    </div>
-                </div>
-                <div className="ml-16 pl-2 border-l-2 space-y-3 text-sm">
-                    <h4 className="font-semibold text-muted-foreground">Reasoning:</h4>
-                    <p className="text-muted-foreground italic">"{allocation.reasoning}"</p>
-                    <div className="space-y-2 text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            <span>Resource has <span className="font-semibold text-foreground">{resource.availability} hours/week</span> available.</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>Aligns with project deadline of <span className="font-semibold text-foreground">{new Date(project.deadline).toLocaleDateString()}</span>.</span>
-                        </div>
-
-                    </div>
-                </div>
-                <Separator className="my-4" />
-              </div>
+              <AllocationItem key={allocation.id} allocation={allocation} resource={resource} project={project} />
             )
           })}
         </div>
