@@ -58,10 +58,7 @@ export default function AllocationsPage() {
   }, []);
 
   useEffect(() => {
-    // Wait until projects and resources are loaded
-    if(projects.length === 0 && resources.length > 0) return;
-    if(resources.length === 0 && projects.length > 0) return;
-
+    if (projects.length === 0 || resources.length === 0) return;
 
     const qAllocations = query(collection(db, 'allocations'));
     const unsubscribeAllocations = onSnapshot(qAllocations, (snapshot) => {

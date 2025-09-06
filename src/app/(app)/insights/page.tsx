@@ -17,36 +17,43 @@ export default function InsightsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let projectCount = 0;
+    let resourceCount = 0;
+    let allocationCount = 0;
+
+    const checkLoading = () => {
+        if (projectCount > 0 && resourceCount > 0 && allocationCount >= 0) { // Allocations can be 0
+            setLoading(false);
+        }
+    }
+
     const qProjects = query(collection(db, "projects"));
     const unsubscribeProjects = onSnapshot(qProjects, (snapshot) => {
+      projectCount = snapshot.size;
       setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
       checkLoading();
     });
 
     const qResources = query(collection(db, "resources"));
     const unsubscribeResources = onSnapshot(qResources, (snapshot) => {
+      resourceCount = snapshot.size;
       setResources(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Resource)));
       checkLoading();
     });
 
     const qAllocations = query(collection(db, "allocations"));
     const unsubscribeAllocations = onSnapshot(qAllocations, (snapshot) => {
+      allocationCount = snapshot.size;
       setAllocations(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Allocation)));
       checkLoading();
     });
     
-    const checkLoading = () => {
-        if (projects.length > 0 && resources.length > 0 && allocations.length > 0) {
-            setLoading(false);
-        }
-    }
-
     return () => {
       unsubscribeProjects();
       unsubscribeResources();
       unsubscribeAllocations();
     };
-  }, [projects.length, resources.length, allocations.length]);
+  }, []);
 
 
   const resourceUtilizationData = resources.map(resource => {
