@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState } from 'react';
-import { collection, query, onSnapshot } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Allocation, Project, Resource } from '@/lib/types';
 import {
@@ -12,16 +12,31 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AllocationsPage() {
   const [allocations, setAllocations] = useState<(Allocation & {project?: Project, resource?: Resource})[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const qProjects = query(collection(db, 'projects'));
@@ -43,7 +58,10 @@ export default function AllocationsPage() {
   }, []);
 
   useEffect(() => {
-    if(projects.length === 0 || resources.length === 0) return;
+    // Wait until projects and resources are loaded
+    if(projects.length === 0 && resources.length > 0) return;
+    if(resources.length === 0 && projects.length > 0) return;
+
 
     const qAllocations = query(collection(db, 'allocations'));
     const unsubscribeAllocations = onSnapshot(qAllocations, (snapshot) => {
@@ -61,6 +79,24 @@ export default function AllocationsPage() {
 
   }, [projects, resources]);
 
+  const handleRemoveAllocation = async (allocationId: string) => {
+    try {
+      await deleteDoc(doc(db, "allocations", allocationId));
+      toast({
+        title: "Allocation Removed",
+        description: "The resource has been successfully de-allocated.",
+      });
+    } catch (error) {
+      console.error("Error removing allocation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove allocation. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -75,6 +111,7 @@ export default function AllocationsPage() {
               <TableHead>Match %</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Reasoning</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -86,6 +123,7 @@ export default function AllocationsPage() {
                   <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-64" /></TableCell>
+                  <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                 </TableRow>
               ))
             ) : (
@@ -121,6 +159,30 @@ export default function AllocationsPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground text-xs max-w-sm truncate">
                     {allocation.reasoning}
+                  </TableCell>
+                   <TableCell className="text-right">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently remove the
+                            allocation of {allocation.resource?.name} from {allocation.project?.name}.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleRemoveAllocation(allocation.id)}>
+                            Continue
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               ))
