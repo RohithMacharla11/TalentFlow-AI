@@ -16,15 +16,18 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
-import { Pen } from 'lucide-react';
+import { Pen, Sparkles, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { ResourceAiSuggestions } from '@/components/resource/resource-ai-suggestions';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ResourceDetailPage({ params }: { params: { id: string } }) {
     const [resource, setResource] = useState<Resource | null>(null);
     const [resourceAllocations, setResourceAllocations] = useState<(Allocation & { project?: Project })[]>([]);
     const [allProjects, setAllProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
+    const { toast } = useToast();
 
     useEffect(() => {
         const fetchResource = async () => {
@@ -68,6 +71,18 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
         };
 
     }, [resource, allProjects]);
+
+    const handleAiSuggestClick = () => {
+        if (allProjects.length === 0) {
+            toast({
+                title: "No Projects Available",
+                description: "Please add a project before getting suggestions.",
+                variant: "destructive",
+            });
+            return;
+        }
+        setIsSuggestionModalOpen(true);
+    };
 
 
     if (loading) {
@@ -172,9 +187,35 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                     </Card>
                 </TabsContent>
                 <TabsContent value="recommendations">
-                    <ResourceAiSuggestions resource={resource} allProjects={allProjects} />
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Sparkles className="text-primary" /> AI Project Suggestions
+                            </CardTitle>
+                            <CardDescription>Use AI to find the most suitable projects for {resource.name}.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="text-center">
+                            <Button onClick={handleAiSuggestClick} disabled={allProjects.length === 0}>
+                                <Zap className="mr-2 h-4 w-4" /> AI Suggest Projects
+                            </Button>
+                            <p className="text-xs text-muted-foreground mt-2">
+                                {allProjects.length === 0
+                                    ? "Please add a project before getting suggestions."
+                                    : "Click the button to get AI-powered project recommendations."
+                                }
+                            </p>
+                        </CardContent>
+                    </Card>
                 </TabsContent>
             </Tabs>
+             {resource && (
+                <ResourceAiSuggestions
+                    resource={resource}
+                    allProjects={allProjects}
+                    open={isSuggestionModalOpen}
+                    onOpenChange={setIsSuggestionModalOpen}
+                />
+            )}
         </div>
     );
 }

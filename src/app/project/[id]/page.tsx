@@ -16,14 +16,17 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Pen } from 'lucide-react';
+import { Pen, Sparkles, Zap } from 'lucide-react';
 import { ProjectAiSuggestions } from '@/components/project/project-ai-suggestions';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProjectDetailPage({ params }: { params: { id: string } }) {
     const [project, setProject] = useState<Project | null>(null);
     const [allocatedResources, setAllocatedResources] = useState<(Allocation & { resource?: Resource })[]>([]);
     const [allResources, setAllResources] = useState<Resource[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isSuggestionModalOpen, setIsSuggestionModalOpen] = useState(false);
+    const { toast } = useToast();
 
     useEffect(() => {
         const fetchProject = async () => {
@@ -66,6 +69,18 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
             unsubscribeAllocations();
         };
     }, [project, allResources]);
+
+     const handleAiAssignClick = () => {
+        if (allResources.length === 0) {
+            toast({
+                title: "No Resources Available",
+                description: "Please add resources before using AI suggestions.",
+                variant: "destructive",
+            });
+            return;
+        }
+        setIsSuggestionModalOpen(true);
+    };
 
     if (loading) {
         return <p>Loading...</p>;
@@ -151,16 +166,38 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                                             ))}
                                         </div>
                                     ) : (
-                                        <p className="text-muted-foreground">
-                                            No resources allocated yet. Use the "AI Suggestions" tab to find and assign team members.
-                                        </p>
+                                        <div className="text-center py-10">
+                                            <p className="text-muted-foreground mb-4">
+                                                No resources allocated yet. Use the "AI Suggestions" tab to find and assign team members.
+                                            </p>
+                                        </div>
                                     )}
                                 </CardContent>
                             </Card>
                         </TabsContent>
 
                         <TabsContent value="suggestions">
-                            <ProjectAiSuggestions project={project} allResources={allResources} />
+                            <Card>
+                                <CardHeader>
+                                     <CardTitle className="flex items-center gap-2">
+                                        <Sparkles className="text-primary" /> AI Assignment
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Use AI to find and assign the best resources for this project.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="text-center">
+                                    <Button onClick={handleAiAssignClick} disabled={allResources.length === 0}>
+                                        <Zap className="mr-2 h-4 w-4" /> AI Assign Resources
+                                    </Button>
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                        {allResources.length === 0 
+                                            ? "Please add a resource before getting suggestions."
+                                            : "Click the button to get AI-powered assignment recommendations."
+                                        }
+                                    </p>
+                                </CardContent>
+                            </Card>
                         </TabsContent>
 
                         <TabsContent value="logs">
@@ -181,6 +218,14 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                     </Tabs>
                 </div>
             </div>
+            {project && (
+                <ProjectAiSuggestions 
+                    project={project} 
+                    allResources={allResources}
+                    open={isSuggestionModalOpen}
+                    onOpenChange={setIsSuggestionModalOpen}
+                />
+            )}
         </div>
     );
 }
