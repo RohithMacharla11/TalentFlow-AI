@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import {
     Tabs,
     TabsContent,
@@ -21,7 +21,9 @@ import Link from 'next/link';
 import { ResourceAiSuggestions } from '@/components/resource/resource-ai-suggestions';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ResourceDetailPage({ params }: { params: { id: string } }) {
+export default function ResourceDetailPage() {
+    const params = useParams();
+    const resourceId = params.id as string;
     const [resource, setResource] = useState<Resource | null>(null);
     const [resourceAllocations, setResourceAllocations] = useState<(Allocation & { project?: Project })[]>([]);
     const [allProjects, setAllProjects] = useState<Project[]>([]);
@@ -30,8 +32,9 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
     const { toast } = useToast();
 
     useEffect(() => {
+        if (!resourceId) return;
         const fetchResource = async () => {
-            const resourceDoc = await getDoc(doc(db, "resources", params.id));
+            const resourceDoc = await getDoc(doc(db, "resources", resourceId));
             if (resourceDoc.exists()) {
                 setResource({ id: resourceDoc.id, ...resourceDoc.data() } as Resource);
             } else {
@@ -51,7 +54,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
             unsubscribeProjects();
         };
 
-    }, [params.id]);
+    }, [resourceId]);
 
     useEffect(() => {
         if (!resource) return;
@@ -193,7 +196,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                                 <Sparkles className="text-primary" /> AI Project Suggestions
                             </CardTitle>
                             <CardDescription>Use AI to find the most suitable projects for {resource.name}.</CardDescription>
-                        </CardHeader>
+                        </Header>
                         <CardContent className="text-center">
                             <Button onClick={handleAiSuggestClick} disabled={allProjects.length === 0}>
                                 <Zap className="mr-2 h-4 w-4" /> AI Suggest Projects

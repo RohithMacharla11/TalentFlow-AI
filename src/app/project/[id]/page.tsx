@@ -8,7 +8,7 @@ import type { Project, Resource, Allocation } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import {
     Tabs,
     TabsContent,
@@ -20,7 +20,9 @@ import { Pen, Sparkles, Zap } from 'lucide-react';
 import { ProjectAiSuggestions } from '@/components/project/project-ai-suggestions';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ProjectDetailPage({ params }: { params: { id: string } }) {
+export default function ProjectDetailPage() {
+    const params = useParams();
+    const projectId = params.id as string;
     const [project, setProject] = useState<Project | null>(null);
     const [allocatedResources, setAllocatedResources] = useState<(Allocation & { resource?: Resource })[]>([]);
     const [allResources, setAllResources] = useState<Resource[]>([]);
@@ -29,8 +31,9 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     const { toast } = useToast();
 
     useEffect(() => {
+        if (!projectId) return;
         const fetchProject = async () => {
-            const projectDoc = await getDoc(doc(db, "projects", params.id));
+            const projectDoc = await getDoc(doc(db, "projects", projectId));
             if (projectDoc.exists()) {
                 setProject({ id: projectDoc.id, ...projectDoc.data() } as Project);
             } else {
@@ -50,7 +53,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
             unsubscribeResources();
         };
 
-    }, [params.id]);
+    }, [projectId]);
 
     useEffect(() => {
         if (!project) return;
