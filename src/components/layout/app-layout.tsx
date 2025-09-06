@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Calendar, Users, ListTodo, Bot } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, ListTodo, Bot, BarChart } from 'lucide-react';
 import { Chatbot } from '../chatbot';
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -26,6 +26,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     { href: '/allocations', label: 'Allocations', icon: ListTodo },
     { href: '/calendar', label: 'Calendar', icon: Calendar },
     { href: '/teams', label: 'Teams', icon: Users },
+    { href: '/insights', label: 'Graphs & Insights', icon: BarChart },
   ];
 
   return (

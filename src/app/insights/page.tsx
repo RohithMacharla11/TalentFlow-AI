@@ -1,0 +1,160 @@
+
+'use client';
+import { useEffect, useState } from 'react';
+import { collection, query, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Project, Resource, Allocation } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+
+export default function InsightsPage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [allocations, setAllocations] = useState<Allocation[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const qProjects = query(collection(db, "projects"));
+    const unsubscribeProjects = onSnapshot(qProjects, (snapshot) => {
+      setProjects(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
+      checkLoading();
+    });
+
+    const qResources = query(collection(db, "resources"));
+    const unsubscribeResources = onSnapshot(qResources, (snapshot) => {
+      setResources(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Resource)));
+      checkLoading();
+    });
+
+    const qAllocations = query(collection(db, "allocations"));
+    const unsubscribeAllocations = onSnapshot(qAllocations, (snapshot) => {
+      setAllocations(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Allocation)));
+      checkLoading();
+    });
+    
+    const checkLoading = () => {
+        if (projects.length > 0 && resources.length > 0 && allocations.length > 0) {
+            setLoading(false);
+        }
+    }
+
+    return () => {
+      unsubscribeProjects();
+      unsubscribeResources();
+      unsubscribeAllocations();
+    };
+  }, [projects.length, resources.length, allocations.length]);
+
+
+  const resourceUtilizationData = resources.map(resource => {
+    const allocatedHours = allocations
+        .filter(a => a.resourceId === resource.id)
+        .reduce((acc) => acc + 8, 0); // Simplified: 8h per project
+    return {
+        name: resource.name,
+        capacity: resource.availability,
+        allocated: allocatedHours
+    };
+  });
+
+  const projectPriorityData = [
+    { name: 'High', value: projects.filter(p => p.priority === 'High').length },
+    { name: 'Medium', value: projects.filter(p => p.priority === 'Medium').length },
+    { name: 'Low', value: projects.filter(p => p.priority === 'Low').length },
+  ].filter(p => p.value > 0);
+
+  const skillsDemand = projects.flatMap(p => p.requiredSkills).reduce((acc, skill) => {
+    acc[skill] = (acc[skill] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  
+  const skillsSupply = resources.flatMap(r => r.skills).reduce((acc, skill) => {
+    acc[skill] = (acc[skill] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const allSkills = [...new Set([...Object.keys(skillsDemand), ...Object.keys(skillsSupply)])];
+
+  const skillsChartData = allSkills.map(skill => ({
+      skill,
+      demand: skillsDemand[skill] || 0,
+      supply: skillsSupply[skill] || 0,
+  }));
+
+
+  return (
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight font-headline">Graphs & Insights</h1>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="col-span-1 lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Resource Utilization</CardTitle>
+            <CardDescription>Allocated hours vs. weekly capacity.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? <Skeleton className="h-[300px] w-full" /> :
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={resourceUtilizationData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="capacity" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="allocated" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}/>
+                    </BarChart>
+                </ResponsiveContainer>
+            }
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader>
+            <CardTitle>Projects by Priority</CardTitle>
+            <CardDescription>Distribution of active projects.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? <Skeleton className="h-[300px] w-full" /> :
+                <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                    <Pie data={projectPriorityData} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value" nameKey="name" label={(entry) => `${entry.name} (${entry.value})`}>
+                        {projectPriorityData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                    </PieChart>
+                </ResponsiveContainer>
+            }
+          </CardContent>
+        </Card>
+        <Card className="col-span-1 lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Skills: Demand vs. Supply</CardTitle>
+            <CardDescription>Required skills for projects vs. available skills in resources.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? <Skeleton className="h-[300px] w-full" /> :
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={skillsChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="skill" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="demand" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="supply" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]}/>
+                    </BarChart>
+                </ResponsiveContainer>
+            }
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
