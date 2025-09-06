@@ -72,7 +72,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
     }
 
     const totalAvailability = 40;
-    const allocatedHours = resourceAllocations.reduce((acc, curr) => acc + (curr.project ? 8 : 0), 0); // Simplified: 8h per project, ensure project exists
+    const allocatedHours = resourceAllocations.reduce((acc, curr) => acc + (curr.project ? 8 : 0), 0); // Simplified: 8h per project
     const remainingAvailability = Math.max(0, resource.availability - allocatedHours);
 
 
@@ -106,7 +106,7 @@ export default function ResourceDetailPage({ params }: { params: { id: string } 
                     <Card>
                         <CardHeader>
                             <CardTitle>Current Allocations</CardTitle>
-                        </CardHeader>
+                        </Header>
                         <CardContent>
                             {resourceAllocations.length > 0 ? (
                                 <div className="space-y-4">
