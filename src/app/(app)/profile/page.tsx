@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,10 +14,16 @@ import { User } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const [name, setName] = useState(user?.displayName || user?.email?.split('@')[0] || '');
+  const [name, setName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingLink, setIsSendingLink] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      setName(user.displayName || user.email?.split('@')[0] || '');
+    }
+  }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
