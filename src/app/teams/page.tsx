@@ -35,7 +35,7 @@ export default function TeamsPage() {
 
   const teams: Team[] = [
     { name: "AI Engineers", members: resources.filter(r => r.role.toLowerCase().includes('ai') || r.role.toLowerCase().includes('engineer')) },
-    { name: "Full-Stack Developers", members: resources.filter(r => r.role.toLowerCase().includes('full-stack') || r-role.toLowerCase().includes('developer')) },
+    { name: "Full-Stack Developers", members: resources.filter(r => r.role.toLowerCase().includes('full-stack') || r.role.toLowerCase().includes('developer')) },
     { name: "Project Managers", members: resources.filter(r => r.role.toLowerCase().includes('manager')) },
     { name: "Interns", members: resources.filter(r => r.seniority === 'Intern') }
   ].filter(team => team.members.length > 0);
