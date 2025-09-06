@@ -72,7 +72,6 @@ export default function ResourceDetailPage() {
         return () => {
             unsubscribeAllocations();
         };
-
     }, [resource, allProjects]);
 
     const handleAiSuggestClick = () => {
